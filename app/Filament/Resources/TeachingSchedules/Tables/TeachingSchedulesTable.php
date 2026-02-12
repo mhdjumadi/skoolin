@@ -15,18 +15,23 @@ class TeachingSchedulesTable
     {
         return $table
             ->columns([
-                TextColumn::make('academicYear.name')
-                    ->searchable(),
-                TextColumn::make('class.name')
-                    ->searchable(),
-                TextColumn::make('teacher.user.name')
-                    ->searchable(),
-                TextColumn::make('subject.name')
+                TextColumn::make('day.name')
+                    ->label('Hari')
                     ->searchable(),
                 TextColumn::make('lessonPeriod.number')
-                ->label('Jam ke')
+                    ->label('Jam ke')
                     ->searchable(),
-                TextColumn::make('day.name')
+                TextColumn::make('class.name')
+                    ->label('Kelas')
+                    ->searchable(),
+                TextColumn::make('teacher.user.name')
+                    ->label('Guru')
+                    ->searchable(),
+                TextColumn::make('subject.name')
+                    ->label('Mata Pelajaran')
+                    ->searchable(),
+                TextColumn::make('academicYear.name')
+                    ->label('Tahun Ajaran')
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()

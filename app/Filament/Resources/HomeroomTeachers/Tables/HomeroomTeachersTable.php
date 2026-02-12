@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\TeachingJournals\Tables;
+namespace App\Filament\Resources\HomeroomTeachers\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -9,31 +9,20 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
-class TeachingJournalsTable
+class HomeroomTeachersTable
 {
     public static function configure(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('date')
-                    ->label('Hari / Tanggal')
-                    ->formatStateUsing(function ($state, $record) {
-                        return $record->teachingSchedule->day->name
-                            . ' - ' .
-                            \Carbon\Carbon::parse($state)->translatedFormat('d M Y');
-                    })
-                    ->sortable(),
-                TextColumn::make('teachingSchedule.lessonPeriod.number')
-                    ->label('Jam ke')
+                TextColumn::make('teacher.user.name')
+                    ->label('Nama')
                     ->searchable(),
-                TextColumn::make('teachingSchedule.teacher.user.name')
-                    ->label('Guru')
+                TextColumn::make('class.name')
+                    ->label('Kelas')
                     ->searchable(),
-                TextColumn::make('teachingSchedule.subject.name')
-                    ->label('Mata Pelajaran')
-                    ->searchable(),
-                TextColumn::make('material')
-                    ->label('Materi')
+                TextColumn::make('academicYear.name')
+                    ->label('Tahun Ajaran')
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()

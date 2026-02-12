@@ -7,6 +7,7 @@ use App\Models\JournalAttendance;
 use App\Models\StudentClass;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DissociateAction;
@@ -105,49 +106,6 @@ class AttendancesRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                // Tombol Generate Absensi Siswa
-                Action::make('generateAttendance')
-                    ->label('Absen Siswa')
-                    ->icon('heroicon-o-user-group')
-                    ->color('primary')
-                    ->form([
-                        Select::make('class_id')
-                            ->label('Pilih Kelas')
-                            ->options(function ($livewire) {
-                                return Classes::pluck('name', 'id');
-                            })
-                            ->required(),
-                    ])
-                    ->action(function ($data, $livewire) {
-                        $journal = $livewire->ownerRecord;
-
-                        $classId = $data['class_id'];
-                        $academicYearId = $journal->teachingSchedule->academic_year_id;
-
-                        // Ambil semua siswa kelas yang dipilih
-                        $students = StudentClass::with('student')
-                            ->where('class_id', $classId)
-                            ->where('academic_year_id', $academicYearId)
-                            ->get();
-
-                        foreach ($students as $sc) {
-                            JournalAttendance::firstOrCreate(
-                                [
-                                    'teaching_journal_id' => $journal->id,
-                                    'student_id' => $sc->student->id,
-                                ],
-                                [
-                                    'status' => 'hadir',
-                                ]
-                            );
-                        }
-
-                    })
-                    ->modalHeading('Pilih Kelas')
-                    ->modalSubheading('Pilih kelas yang ingin di-generate siswanya')
-                    ->modalButton('Generate')
-
-
                 // Default CreateAction jika ingin menambahkan manual
                 // CreateAction::make(),
             ])

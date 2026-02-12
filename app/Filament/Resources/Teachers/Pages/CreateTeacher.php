@@ -10,11 +10,4 @@ class CreateTeacher extends CreateRecord
 {
     protected static string $resource = TeacherResource::class;
     protected static ?string $title = 'Guru Baru';
-
-    protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        $data['password'] = Hash::make($data['nip']);
-
-        return $data;
-    }
 }

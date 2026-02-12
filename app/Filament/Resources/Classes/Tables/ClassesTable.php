@@ -17,10 +17,10 @@ class ClassesTable
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('school.name')
+                    ->label('Nama')
                     ->searchable(),
                 TextColumn::make('description')
+                    ->label('Deskripsi')
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()

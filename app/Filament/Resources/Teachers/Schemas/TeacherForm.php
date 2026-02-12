@@ -16,7 +16,6 @@ class TeacherForm
     {
         return $schema
             ->components([
-
                 Fieldset::make('Info umum')
                     ->relationship('user')
                     ->schema([
@@ -30,6 +29,13 @@ class TeacherForm
                             ->columnSpanFull()
                             ->email()
                             ->required(),
+
+                        TextInput::make('password')
+                            ->password()
+                            ->columnSpanFull()
+                            ->required(fn($context) => $context === 'create')
+                            ->dehydrateStateUsing(fn($state) => $state ? bcrypt($state) : null)
+                            ->dehydrated(fn($state) => !blank($state)),
 
                         Select::make('gender')
                             ->options(['l' => 'Laki-laki', 'p' => 'Perempuan'])
