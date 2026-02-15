@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TeachingJournals\Tables;
 
+use Carbon\Carbon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -20,12 +21,22 @@ class TeachingJournalsTable
                     ->formatStateUsing(function ($state, $record) {
                         return $record->teachingSchedule->day->name
                             . ' - ' .
-                            \Carbon\Carbon::parse($state)->translatedFormat('d M Y');
+                            Carbon::parse($state)->translatedFormat('d M Y');
                     })
                     ->sortable(),
                 TextColumn::make('teachingSchedule.lessonPeriod.number')
                     ->label('Jam ke')
                     ->searchable(),
+                TextColumn::make('teachingSchedule.lessonPeriod.number')
+                    ->label('Jam Mengajar')
+                    ->formatStateUsing(function ($state, $record) {
+                        $start = Carbon::parse($record->teachingSchedule->lessonPeriod->start_time)->format('H.i');
+                        $end = Carbon::parse($record->teachingSchedule->lessonPeriod->end_time)->format('H.i');
+
+                        return "{$state} - ({$start} - {$end})";
+                    })
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('teachingSchedule.teacher.user.name')
                     ->label('Guru')
                     ->searchable(),
@@ -43,6 +54,25 @@ class TeachingJournalsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('present_count')
+                    ->label('Hadir')
+                    ->badge()
+                    ->color('success'),
+
+                TextColumn::make('sick_count')
+                    ->label('Sakit')
+                    ->badge()
+                    ->color('warning'),
+
+                TextColumn::make('excused_count')
+                    ->label('Izin')
+                    ->badge()
+                    ->color('info'),
+
+                TextColumn::make('absent_count')
+                    ->label('Alpha')
+                    ->badge()
+                    ->color('danger'),
             ])
             ->filters([
                 //

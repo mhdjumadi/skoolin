@@ -8,6 +8,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use PhpParser\Node\Stmt\Label;
 
 class DaysTable
 {
@@ -16,8 +17,10 @@ class DaysTable
         return $table
             ->columns([
                 TextColumn::make('name')
+                    ->Label('Nama')
                     ->searchable(),
                 TextColumn::make('order')
+                    ->label('Urutan')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('created_at')

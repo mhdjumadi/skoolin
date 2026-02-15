@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TeachingSchedules\Tables;
 
+use Carbon\Carbon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -19,8 +20,15 @@ class TeachingSchedulesTable
                     ->label('Hari')
                     ->searchable(),
                 TextColumn::make('lessonPeriod.number')
-                    ->label('Jam ke')
-                    ->searchable(),
+                    ->label('Jam Mengajar')
+                    ->formatStateUsing(function ($state, $record) {
+                        $start = Carbon::parse($record->lessonPeriod->start_time)->format('H.i');
+                        $end = Carbon::parse($record->lessonPeriod->end_time)->format('H.i');
+
+                        return "{$state} - ({$start} - {$end})";
+                    })
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('class.name')
                     ->label('Kelas')
                     ->searchable(),

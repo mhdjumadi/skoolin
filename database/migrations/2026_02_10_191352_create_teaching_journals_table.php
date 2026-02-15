@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -16,7 +15,11 @@ return new class extends Migration
 
             $table->uuid('teaching_schedule_id');
             $table->date('date');
-            $table->string('material');
+            $table->time('start_time')->useCurrent();
+            $table->time('end_time')->useCurrent();
+            $table->text('material')->nullable();
+            $table->text('activities')->nullable();
+            $table->text('assessment')->nullable();
             $table->text('notes')->nullable();
 
             $table->timestamps();

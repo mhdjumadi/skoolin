@@ -6,6 +6,8 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Schemas\Components\View;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -17,13 +19,16 @@ class TeachersTable
             ->columns([
                 TextColumn::make('user.name')
                     ->label('Nama')
+                    ->label('Nama')
                     ->searchable(),
                 TextColumn::make('user.email')
                     ->label('Email')
                     ->searchable(),
                 TextColumn::make('nip')
+                    ->label('NIP')
                     ->searchable(),
                 TextColumn::make('nuptk')
+                    ->label('NUPTK')
                     ->searchable(),
                 TextColumn::make('user.gender')
                     ->label('Jenis Kelamin')
@@ -50,6 +55,7 @@ class TeachersTable
                 //
             ])
             ->recordActions([
+                ViewAction::make(),
                 EditAction::make(),
                 DeleteAction::make(),
             ])

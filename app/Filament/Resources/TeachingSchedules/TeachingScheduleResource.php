@@ -15,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class TeachingScheduleResource extends Resource
@@ -56,5 +57,17 @@ class TeachingScheduleResource extends Resource
             'view' => ViewTeachingSchedule::route('/{record}'),
             'edit' => EditTeachingSchedule::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $user = auth()->user();
+
+        if (!$user->teacher) {
+            return parent::getEloquentQuery();
+        }
+
+        return parent::getEloquentQuery()
+            ->where('teacher_id', $user->teacher->id);
     }
 }

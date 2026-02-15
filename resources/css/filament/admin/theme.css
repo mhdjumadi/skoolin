@@ -1,0 +1,67 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+
+/* @theme {
+    --color-main-primary: #F0FDF9;
+    --color-main-secondary: rgb(204, 197, 181);
+    --color-main-black: rgb(40, 43, 47);
+    --color-main-white: rgb(255, 255, 255);
+    --color-main-accent: rgb(241, 202, 59);
+} */
+
+@theme {
+    /* 🌿 Background */
+    --color-main-primary: #E0F2FE;
+    --color-main-sidebar: #059669;
+    /* page background mint */
+    --color-main-secondary: #CCFBF1;
+    /* panel / section ringan */
+
+    /* 🤍 White & Surface */
+    --color-main-white: #FFFFFF;
+    /* pure white */
+    --color-main-surface: #FFFFFF;
+    /* card, modal, table */
+
+    /* 🎯 Brand Identity */
+    --color-brand-primary: #0F766E;
+    /* teal-700 */
+    --color-brand-primary-soft: #14B8A6;
+    /* hover */
+
+    /* ⭐ Accent */
+    --color-main-accent: #F59E0B;
+    /* amber */
+    --color-main-accent-soft: #FCD34D;
+
+    /* 🖋 Text */
+    --color-main-black: #1F2937;
+    --color-main-muted: #4B5563;
+
+    /* 🪵 Border */
+    --color-main-border: #E5E7EB;
+}
+
+
+.fi-body {
+    @apply bg-main-primary text-main-black;
+}
+
+.fi-topbar {
+    @apply bg-main-primary shadow-none ring-0;
+}
+
+.fi-sidebar {
+    @apply bg-main-white shadow-lg rounded-2xl ml-2;
+}
+
+.fi-body-has-topbar .fi-sidebar {
+    height: calc(100vh - 5rem);
+}
+
+.fi-sidebar-item>.fi-sidebar-item-btn {
+    @apply rounded-2xl;
+}

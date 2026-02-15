@@ -40,4 +40,16 @@ class Student extends Model
             ->withPivot(['academic_year_id'])
             ->withTimestamps();
     }
+
+    public function attendances()
+    {
+        return $this->hasMany(StudentAttendance::class);
+    }
+
+    public function guardians()
+    {
+        return $this->belongsToMany(Guardian::class, 'guardian_students', 'student_id', 'guardian_id')
+            ->withPivot('relationship')
+            ->withTimestamps();
+    }
 }

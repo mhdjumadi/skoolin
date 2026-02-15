@@ -18,7 +18,11 @@ class TeachingJournal extends Model
     protected $fillable = [
         'teaching_schedule_id',
         'date',
+        'start_time',
+        'end_time',
         'material',
+        'activities',
+        'assessment',
         'notes',
     ];
 

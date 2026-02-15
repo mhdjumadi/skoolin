@@ -57,4 +57,9 @@ class SubjectResource extends Resource
             'edit' => EditSubject::route('/{record}/edit'),
         ];
     }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
 }

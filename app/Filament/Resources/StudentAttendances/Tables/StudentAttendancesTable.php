@@ -16,25 +16,27 @@ class StudentAttendancesTable
         return $table
             ->columns([
                 TextColumn::make('student.name')
+                    ->label('Nama')
                     ->searchable(),
                 TextColumn::make('academicYear.name')
+                    ->label('Tahun ajaran')
                     ->searchable(),
                 TextColumn::make('date')
+                    ->label('Tanggal')
                     ->date()
                     ->sortable(),
                 TextColumn::make('check_in')
+                    ->label('Masuk')
                     ->time()
                     ->sortable(),
                 TextColumn::make('check_out')
+                    ->label('Pulang')
                     ->time()
                     ->sortable(),
-                TextColumn::make('status')
-                    ->searchable(),
                 TextColumn::make('device')
+                    ->label('Perangkat')
                     ->searchable(),
-                TextColumn::make('created_by')
-                    ->searchable(),
-                TextColumn::make('updated_by')
+                TextColumn::make('status')
                     ->searchable(),
                 TextColumn::make('created_at')
                     ->dateTime()

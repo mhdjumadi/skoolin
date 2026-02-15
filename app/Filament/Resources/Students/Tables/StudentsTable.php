@@ -17,21 +17,29 @@ class StudentsTable
         return $table
             ->columns([
                 TextColumn::make('rfid')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('name')
+                    ->label('Nama')
                     ->searchable(),
                 TextColumn::make('nisn')
-                    ->searchable(),
-                TextColumn::make('name')
+                    ->label('NISN')
                     ->searchable(),
                 TextColumn::make('gender')
+                    ->label('Jenis Kelamin')
                     ->searchable(),
                 TextColumn::make('birth_place')
+                    ->label('Tempat Lahir')
                     ->searchable(),
                 TextColumn::make('birth_date')
+                    ->label('Tanggal Lahir')
                     ->date()
                     ->sortable(),
                 TextColumn::make('phone')
+                    ->label('No Hp')
                     ->searchable(),
                 TextColumn::make('address')
+                    ->label('Alamat')
                     ->searchable(),
                 IconColumn::make('is_active')
                     ->boolean(),

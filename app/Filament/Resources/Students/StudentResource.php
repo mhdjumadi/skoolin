@@ -44,7 +44,8 @@ class StudentResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\ClassesRelationManager::class,
+            RelationManagers\GuardiansRelationManager::class,
         ];
     }
 
@@ -56,5 +57,10 @@ class StudentResource extends Resource
             'view' => ViewStudent::route('/{record}'),
             'edit' => EditStudent::route('/{record}/edit'),
         ];
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
     }
 }

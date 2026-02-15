@@ -16,12 +16,14 @@ class LessonPeriodsTable
         return $table
             ->columns([
                 TextColumn::make('number')
-                ->label('Jam')
+                    ->label('Jam')
                     ->searchable(),
                 TextColumn::make('start_time')
+                    ->label('Mulai')
                     ->time()
                     ->sortable(),
                 TextColumn::make('end_time')
+                    ->label('Selesai')
                     ->time()
                     ->sortable(),
                 TextColumn::make('created_at')
