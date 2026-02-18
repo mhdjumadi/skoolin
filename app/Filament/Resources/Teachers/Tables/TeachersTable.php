@@ -42,6 +42,11 @@ class TeachersTable
                     ->searchable(),
                 TextColumn::make('status')
                     ->searchable(),
+                TextColumn::make('user.roles.name')
+                    ->label('Role')
+                    ->formatStateUsing(fn ($roles) => $roles?->pluck('name')->implode(', ') ?? '-')
+                    ->sortable(),
+
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

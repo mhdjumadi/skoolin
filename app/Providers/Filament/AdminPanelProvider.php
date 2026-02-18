@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use Filament\Actions\Action;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -19,6 +21,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use App\Filament\Pages\Settings;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -31,8 +34,10 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             ->colors([
-                'primary' => Color::Gray,
+                'primary' => Color::Slate,
             ])
+            ->profile()
+            ->simpleProfilePage(false)
             ->brandName('SMK Harapan')
             ->darkMode(false)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
@@ -43,7 +48,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
-                FilamentInfoWidget::class,
             ])
             ->navigationGroups([
                 NavigationGroup::make()
@@ -51,10 +55,14 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-document-text'),
                 NavigationGroup::make()
                     ->label('Master')
-                    ->icon('heroicon-o-pencil'),
+                    ->icon('heroicon-o-cog'),
                 NavigationGroup::make()
                     ->label('Pengaturan')
                     ->icon('heroicon-o-cog-6-tooth')
+                    ->collapsed(),
+                NavigationGroup::make()
+                    ->label('Filament Shield')
+                    ->icon('heroicon-o-shield-check')
                     ->collapsed(),
             ])
             ->sidebarCollapsibleOnDesktop()
@@ -68,6 +76,9 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+            ])
+            ->plugins([
+                FilamentShieldPlugin::make(),
             ])
             ->authMiddleware([
                 Authenticate::class,

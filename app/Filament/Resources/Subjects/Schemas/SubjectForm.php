@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Subjects\Schemas;
 
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class SubjectForm
@@ -11,10 +12,17 @@ class SubjectForm
     {
         return $schema
             ->components([
-                TextInput::make('name')
-                    ->required(),
-                TextInput::make('code')
-                    ->required(),
+                Section::make()
+                    ->schema([
+                        TextInput::make('name')
+                            ->label('Nama')
+                            ->required(),
+                        TextInput::make('code')
+                            ->label('Kode')
+                            ->required(),
+                    ])
+                    ->columns(2)
+                    ->columnSpanFull()
             ]);
     }
 }

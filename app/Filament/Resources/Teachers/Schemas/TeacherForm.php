@@ -2,13 +2,14 @@
 
 namespace App\Filament\Resources\Teachers\Schemas;
 
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Fieldset;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class TeacherForm
 {
@@ -16,50 +17,52 @@ class TeacherForm
     {
         return $schema
             ->components([
-                Fieldset::make('Info umum')
-                    ->relationship('user')
+                Section::make()
                     ->schema([
-                        TextInput::make('name')
-                            ->label('Nama Lengkap')
-                            ->columnSpanFull()
-                            ->required(),
+                        Fieldset::make('Informasi Umum')
+                            ->schema([
+                                TextInput::make('name')
+                                    ->label('Nama')
+                                    ->required(),
 
-                        TextInput::make('email')
-                            ->label('Email')
-                            ->columnSpanFull()
-                            ->email()
-                            ->required(),
+                                TextInput::make('email')
+                                    ->label('Email')
+                                    ->email()
+                                    ->required(),
 
-                        TextInput::make('password')
-                            ->password()
-                            ->columnSpanFull()
-                            ->required(fn($context) => $context === 'create')
-                            ->dehydrateStateUsing(fn($state) => $state ? bcrypt($state) : null)
-                            ->dehydrated(fn($state) => !blank($state)),
+                                Select::make('gender')
+                                    ->label('Jenis Kelamin')
+                                    ->options([
+                                        'l' => 'Laki-laki',
+                                        'p' => 'Perempuan',
+                                    ]),
 
-                        Select::make('gender')
-                            ->options(['l' => 'Laki-laki', 'p' => 'Perempuan'])
-                            ->columnSpanFull(),
+                                TextInput::make('phone')
+                                    ->label('No Hp')
+                                    ->tel()
+                                    ->prefix('62')
+                                    ->required(),
 
-                        TextInput::make('phone')
-                            ->tel()
-                            ->prefix('62')
-                            ->columnSpanFull(),
-                        Textarea::make('address')
-                            ->columnSpanFull(),
-                    ]),
+                                Textarea::make('address')
+                                    ->label('Alamat'),
+                            ])
+                            ->columns(2),
 
-                Fieldset::make('Detail guru')
-                    ->schema([
-                        TextInput::make('nip')
-                            ->required()
-                            ->columnSpanFull(),
-                        TextInput::make('nuptk')
-                            ->columnSpanFull(),
-                        TextInput::make('status')
-                            ->columnSpanFull()
-                            ->default('honorer'),
+                        Fieldset::make('Detail Guru')
+                            ->schema([
+                                TextInput::make('nip')
+                                    ->label('NIP')
+                                    ->required(),
+
+                                TextInput::make('nuptk')
+                                    ->label('NUPTK'),
+
+                                TextInput::make('status')
+                                    ->default('honorer'),
+                            ])
+                            ->columns(2),
                     ])
+                    ->columnSpanFull(),
             ]);
     }
 }

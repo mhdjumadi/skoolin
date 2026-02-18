@@ -21,8 +21,8 @@ class ListTeachingJournals extends ListRecords
     {
         return [
             CreateAction::make()
-            ->label('Jurnal baru')
-            ];
+                ->label('Jurnal baru')
+        ];
     }
 
     public $defaultActionArguments;
@@ -33,14 +33,29 @@ class ListTeachingJournals extends ListRecords
     {
         $this->classId = request()->query('token');
 
-        $kelas = Classes::firstOrFail();
-        $this->classId = $kelas->id;
+        // Jangan pakai firstOrFail
+        $kelas = Classes::first();
+
+        if ($kelas) {
+            $this->classId = $kelas->id;
+        }
     }
+
 
     public function onboardingAction(): Action
     {
         $kelas = Classes::findOrFail($this->classId);
         $teacher = auth()->user()->teacher;
+
+        if (!$teacher) {
+            return Action::make('info')
+                ->label('Info')
+                ->modalHeading('Akses ditolak')
+                ->modalSubmitAction(false)
+                ->modalContent(fn() => new HtmlString(
+                    "<p class='text-sm text-gray-700'>Hanya guru yang dapat melakukan check-in jurnal.</p>"
+                ));
+        }
 
         // 1. Ambil schedule hari ini
         $todayDay = now()->format('l');

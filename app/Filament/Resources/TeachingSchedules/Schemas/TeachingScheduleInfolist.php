@@ -13,7 +13,7 @@ class TeachingScheduleInfolist
     {
         return $schema
             ->components([
-                Section::make('Detail Jadwal Mengajar')
+                Section::make('Informasi Jadwal Mengajar')
                     ->icon('heroicon-o-calendar')
                     ->schema([
                         TextEntry::make('academicYear.name')
@@ -29,7 +29,7 @@ class TeachingScheduleInfolist
                             ->icon('heroicon-o-home-modern'),
 
                         TextEntry::make('teacher.user.name')
-                            ->label('Guru Pengampu')
+                            ->label('Guru')
                             ->weight(FontWeight::Bold)
                             ->icon('heroicon-o-user'),
 

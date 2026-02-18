@@ -4,6 +4,7 @@ namespace App\Filament\Resources\LessonPeriods\Schemas;
 
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class LessonPeriodForm
@@ -12,12 +13,22 @@ class LessonPeriodForm
     {
         return $schema
             ->components([
-                TextInput::make('number')
-                    ->required(),
-                TimePicker::make('start_time')
-                    ->required(),
-                TimePicker::make('end_time')
-                    ->required(),
+                Section::make()
+                    ->schema([
+                        TextInput::make('number')
+                            ->label('Jam ke')
+                            ->numeric()
+                            ->columnSpanFull()
+                            ->required(),
+                        TimePicker::make('start_time')
+                            ->label('Jam mulai')
+                            ->required(),
+                        TimePicker::make('end_time')
+                            ->label('Jam selesai')
+                            ->required(),
+                    ])
+                    ->columns('2')
+                    ->columnSpanFull()
             ]);
     }
 }

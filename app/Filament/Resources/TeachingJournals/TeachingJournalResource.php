@@ -15,7 +15,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class TeachingJournalResource extends Resource
@@ -57,47 +56,5 @@ class TeachingJournalResource extends Resource
             'view' => ViewTeachingJournal::route('/{record}'),
             'edit' => EditTeachingJournal::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-
-        $user = auth()->user();
-
-        // Kalau bukan guru (misalnya admin), tampilkan semua
-        if (!$user->teacher) {
-            return parent::getEloquentQuery()
-                ->withCount([
-                    'attendances as present_count' => fn($q) =>
-                        $q->where('status', 'hadir'),
-
-                    'attendances as sick_count' => fn($q) =>
-                        $q->where('status', 'sakit'),
-
-                    'attendances as excused_count' => fn($q) =>
-                        $q->where('status', 'izin'),
-
-                    'attendances as absent_count' => fn($q) =>
-                        $q->where('status', 'tanpa_keterangan'),
-                ]);
-        }
-
-        return parent::getEloquentQuery()
-            ->withCount([
-                'attendances as present_count' => fn($q) =>
-                    $q->where('status', 'hadir'),
-
-                'attendances as sick_count' => fn($q) =>
-                    $q->where('status', 'sakit'),
-
-                'attendances as excused_count' => fn($q) =>
-                    $q->where('status', 'izin'),
-
-                'attendances as absent_count' => fn($q) =>
-                    $q->where('status', 'tanpa_keterangan'),
-            ])
-            ->whereHas('teachingSchedule', function ($query) use ($user) {
-                $query->where('teacher_id', $user->teacher->id);
-            });
     }
 }

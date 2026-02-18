@@ -18,10 +18,23 @@ class GuardiansTable
             ->columns([
                 TextColumn::make('user.name')
                     ->searchable(),
-                    TextColumn::make('students.name')
-    ->label('Siswa')
-    ->badge()
-    ->separator(', '),
+                TextColumn::make('user.email')
+                    ->label('Email')
+                    ->searchable(),
+                TextColumn::make('students.name')
+                    ->label('Siswa')
+                    ->badge()
+                    ->separator(', '),
+                TextColumn::make('user.gender')
+                    ->label('Jenis Kelamin')
+                    ->badge()
+                    ->formatStateUsing(fn($state) => [
+                        'l' => 'Laki-laki',
+                        'p' => 'Perempuan',
+                    ][$state] ?? '-'),
+                TextColumn::make('user.phone')
+                    ->label('No Hp')
+                    ->searchable(),
                 IconColumn::make('is_notif')
                     ->boolean(),
                 TextColumn::make('created_at')

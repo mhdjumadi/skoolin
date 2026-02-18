@@ -13,49 +13,46 @@
 } */
 
 @theme {
-    /* 🌿 Background */
-    --color-main-primary: #E0F2FE;
-    --color-main-sidebar: #059669;
-    /* page background mint */
-    --color-main-secondary: #CCFBF1;
-    /* panel / section ringan */
-
-    /* 🤍 White & Surface */
+    --color-main-primary: #134686; /* #F0F0F0 */
+    --color-main-secondary: #F0F0F0; /* #134686 */
     --color-main-white: #FFFFFF;
-    /* pure white */
-    --color-main-surface: #FFFFFF;
-    /* card, modal, table */
-
-    /* 🎯 Brand Identity */
     --color-brand-primary: #0F766E;
-    /* teal-700 */
-    --color-brand-primary-soft: #14B8A6;
-    /* hover */
-
-    /* ⭐ Accent */
-    --color-main-accent: #F59E0B;
-    /* amber */
-    --color-main-accent-soft: #FCD34D;
-
-    /* 🖋 Text */
+    --color-main-accent: #F3F4F6;
     --color-main-black: #1F2937;
     --color-main-muted: #4B5563;
-
-    /* 🪵 Border */
-    --color-main-border: #E5E7EB;
 }
 
 
 .fi-body {
-    @apply bg-main-primary text-main-black;
+    @apply bg-main-secondary text-main-black;
 }
 
 .fi-topbar {
-    @apply bg-main-primary shadow-none ring-0;
+    @apply bg-main-primary shadow-none ring-0 text-main-white;
+}
+
+.fi-icon-btn {
+    @apply text-main-secondary
+}
+
+.fi-icon-btn {
+    &.fi-size-sm {
+        &:has(.fi-icon.fi-size-md) {
+            @apply text-main-primary
+        }
+    }
+}
+
+.fi-logo {
+    @apply text-main-white
+}
+
+.fi-sidebar-header .fi-logo {
+    @apply text-main-primary
 }
 
 .fi-sidebar {
-    @apply bg-main-white shadow-lg rounded-2xl ml-2;
+    @apply bg-main-white shadow-lg rounded-2xl ml-2 mt-2;
 }
 
 .fi-body-has-topbar .fi-sidebar {
@@ -64,4 +61,48 @@
 
 .fi-sidebar-item>.fi-sidebar-item-btn {
     @apply rounded-2xl;
+}
+
+.fi-input-wrp, .fi-btn{
+    @apply rounded-2xl;
+}
+
+.fi-sidebar-item.fi-active>.fi-sidebar-item-btn>.fi-sidebar-item-label{
+    @apply text-main-primary;
+}
+
+.fi-sidebar-item.fi-active>.fi-sidebar-item-btn>.fi-icon{
+    @apply text-main-primary;
+}
+
+.fi-sidebar-item.fi-active>.fi-sidebar-item-btn>.fi-sidebar-item-grouped-border>.fi-sidebar-item-grouped-border-part{
+    @apply bg-main-primary;
+}
+
+.fi-ta-ctn{
+    @apply bg-main-white p-4;
+}
+
+.fi-ta-ctn {
+    & .fi-ta-header-ctn{
+        @apply rounded-2xl bg-main-primary;
+    }
+}
+
+.fi-ta-ctn {
+    & .fi-ta-header-toolbar {
+        @apply border-b-0;
+    }
+}
+
+.fi-ta-table{
+    &>thead {
+        &>tr {
+            @apply text-main-black bg-main-white;
+        }
+    }
+}
+
+.fi-ta-header-heading{
+    @apply text-main-white;
 }

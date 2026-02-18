@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Classes\Schemas;
 
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class ClassesForm
@@ -11,9 +12,18 @@ class ClassesForm
     {
         return $schema
             ->components([
-                TextInput::make('name')
-                    ->required(),
-                TextInput::make('description'),
+                Section::make()
+                    ->schema([
+                        TextInput::make('name')
+                            ->label('Nama')
+                            ->placeholder('Nama kelas')
+                            ->required(),
+                        TextInput::make('description')
+                            ->label('Deskripsi')
+                            ->placeholder('Deskripsi kelas'),
+                    ])
+                    ->columns(2)
+                    ->columnSpanFull()
             ]);
     }
 }

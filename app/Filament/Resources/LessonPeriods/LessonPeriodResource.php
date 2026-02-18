@@ -24,7 +24,7 @@ class LessonPeriodResource extends Resource
     protected static ?string $navigationLabel = 'Jam Mengajar';
 
     protected static string|UnitEnum|null $navigationGroup = 'Master';
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
     public static function form(Schema $schema): Schema
     {
         return LessonPeriodForm::configure($schema);

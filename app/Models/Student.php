@@ -12,7 +12,6 @@ class Student extends Model
 
     protected $fillable = [
         'nisn',
-        'rfid',
         'name',
         'gender',
         'birth_place',
@@ -21,6 +20,7 @@ class Student extends Model
         'address',
         'is_active',
         'password',
+        'academic_year_id',
     ];
 
     protected $casts = [
@@ -32,6 +32,11 @@ class Student extends Model
         'password',
         'remember_token',
     ];
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
+    }
 
     public function classes()
     {
@@ -51,5 +56,10 @@ class Student extends Model
         return $this->belongsToMany(Guardian::class, 'guardian_students', 'student_id', 'guardian_id')
             ->withPivot('relationship')
             ->withTimestamps();
+    }
+
+    public function rfidMasters()
+    {
+        return $this->hasMany(RfidMaster::class);
     }
 }

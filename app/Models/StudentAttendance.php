@@ -20,6 +20,8 @@ class StudentAttendance extends Model
         'status',
         'note',
         'device',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [

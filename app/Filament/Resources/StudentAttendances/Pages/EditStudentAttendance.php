@@ -11,6 +11,14 @@ class EditStudentAttendance extends EditRecord
 {
     protected static string $resource = StudentAttendanceResource::class;
 
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+
+        dd($data);
+        $data['updated_by'] = auth()->id();
+
+        return $data;
+    }
     protected function getHeaderActions(): array
     {
         return [

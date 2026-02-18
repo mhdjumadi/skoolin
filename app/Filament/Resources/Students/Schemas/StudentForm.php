@@ -8,113 +8,133 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use PhpParser\Node\Stmt\Label;
 
 class StudentForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return $schema
+            ->components([
+                Section::make()
+                    ->schema([
+                        Fieldset::make('Informasi Siswa')
+                            ->schema([
+                                TextInput::make('nisn')
+                                    ->label('NISN')
+                                    ->required()
+                                    ->unique(ignoreRecord: true),
 
-            Section::make('Informasi Siswa')
-                ->schema([
-                    Grid::make(2)->schema([
-                        TextInput::make('rfid')
-                            ->label('RFID')
-                            ->placeholder('Scan kartu...'),
+                                TextInput::make('name')
+                                    ->label('Nama')
+                                    ->required()
+                                    ->maxLength(255),
 
-                        TextInput::make('nisn')
-                            ->required()
-                            ->unique(ignoreRecord: true),
-                    ]),
+                                Select::make('gender')
+                                    ->label('Jenis Kelamin')
+                                    ->options([
+                                        'l' => 'Laki-laki',
+                                        'p' => 'Perempuan',
+                                    ])
+                                    ->required(),
 
-                    TextInput::make('name')
-                        ->required()
-                        ->maxLength(255),
+                                TextInput::make('phone')
+                                    ->label('No Hp')
+                                    ->tel()
+                                    ->placeholder('08xxxxxxxxxx'),
 
-                    Select::make('gender')
-                        ->options([
-                            'l' => 'Laki-laki',
-                            'p' => 'Perempuan',
-                        ])
-                        ->required(),
+                                Grid::make(2)->schema([
+                                    TextInput::make('birth_place')
+                                        ->label('Tempat Lahir')
+                                        ->required(),
 
-                    Grid::make(2)->schema([
-                        TextInput::make('birth_place')
-                            ->required(),
+                                    DatePicker::make('birth_date')
+                                        ->label('Tanggal Lahir')
+                                        ->required(),
+                                ])
+                                    ->columnSpanFull(),
 
-                        DatePicker::make('birth_date')
-                            ->required(),
-                    ]),
+                                Textarea::make('address')
+                                    ->label('Alamat')
+                                    ->rows(3)
+                                    ->required()
+                                    ->columnSpanFull(),
 
-                    TextInput::make('phone')
-                        ->tel()
-                        ->placeholder('08xxxxxxxxxx'),
+                                Toggle::make('is_active')
+                                    ->default(true),
+                            ])
+                            ->columns(2),
 
-                    Textarea::make('address')
-                        ->rows(3)
-                        ->required(),
+                        Fieldset::make('Orang Tua Murid')
+                            ->schema([
+                                Select::make('guardians')
+                                    ->label('Orang Tua')
+                                    ->relationship('guardians', 'id')
+                                    ->getOptionLabelFromRecordUsing(
+                                        fn($record) =>
+                                        $record->user?->name ?? '-'
+                                    )
+                                    ->searchable()
+                                    ->preload()
+                                    ->multiple()
+                                    ->columnSpanFull()
 
-                    Toggle::make('is_active')
-                        ->default(true),
-                ]),
+                                    ->createOptionForm([
+                                        TextInput::make('name')
+                                            ->label('Nama')
+                                            ->required(),
 
-            Section::make('Wali Murid')
-                ->description('Pilih wali yang sudah ada atau buat baru.')
-                ->schema([
-                    Select::make('guardians')
-                        ->relationship('guardians', 'id')
-                        ->getOptionLabelFromRecordUsing(
-                            fn($record) =>
-                            $record->user?->name ?? '-'
-                        )
-                        ->searchable()
-                        ->preload()
-                        ->multiple()
+                                        TextInput::make('email')
+                                            ->email()
+                                            ->required()
+                                            ->unique('users', 'email'),
 
-                        ->createOptionForm([
-                            TextInput::make('name')
-                                ->label('Nama Wali')
-                                ->required(),
+                                        Select::make('gender')
+                                            ->label('Jenis Kelamin')
+                                            ->options([
+                                                'l' => 'Laki-laki',
+                                                'p' => 'Perempuan',
+                                            ]),
 
-                            TextInput::make('email')
-                                ->email()
-                                ->required()
-                                ->unique('users', 'email'),
+                                        TextInput::make('phone')
+                                            ->required(),
 
-                            TextInput::make('phone')
-                                ->required(),
+                                        TextInput::make('address'),
 
-                            TextInput::make('address'),
+                                        Toggle::make('is_notify')
+                                            ->label('Terima Notifikasi')
+                                            ->default(true),
+                                    ])
+                                    ->createOptionUsing(function (array $data) {
 
-                            Toggle::make('is_notify')
-                                ->label('Terima Notifikasi')
-                                ->default(true),
-                        ])
-                        ->createOptionUsing(function (array $data) {
+                                        // 1️⃣ Buat user dulu
+                                        $user = \App\Models\User::create([
+                                            'name' => $data['name'],
+                                            'email' => $data['email'],
+                                            'phone' => $data['phone'],
+                                            'address' => $data['address'] ?? null,
+                                            'password' => bcrypt($data['email']),
+                                        ]);
 
-                            // 1️⃣ Buat user dulu
-                            $user = \App\Models\User::create([
-                                'name' => $data['name'],
-                                'email' => $data['email'],
-                                'phone' => $data['phone'],
-                                'address' => $data['address'] ?? null,
-                                'password' => bcrypt($data['phone']),
-                            ]);
+                                        $user->assignRole('guardian');
 
-                            // 2️⃣ Buat guardian
-                            $guardian = \App\Models\Guardian::create([
-                                'user_id' => $user->id,
-                                'is_notify' => $data['is_notify'] ?? true,
-                            ]);
+                                        // 2️⃣ Buat guardian
+                                        $guardian = \App\Models\Guardian::create([
+                                            'user_id' => $user->id,
+                                            'is_notify' => $data['is_notify'] ?? true,
+                                        ]);
 
-                            return $guardian->id; // penting!
-                        })
+                                        return $guardian->id; // penting!
+                                    })
 
-                ])
-        ]);
+                            ])
+                    ])
+                    ->columnSpanFull()
+            ]);
 
     }
 }

@@ -70,7 +70,9 @@ class TeachingSchedule extends Model
     public function getFullLabelAttribute()
     {
         return $this->day->name . ' - ' .
-            $this->lessonPeriod->number . ' - ' .
+            $this->lessonPeriod->number . ' (' .
+            $this->lessonPeriod->start_time . '-' .
+            $this->lessonPeriod->end_time . ') - ' .
             $this->subject->name . ' - ' .
             $this->teacher->user->name;
     }
