@@ -2,12 +2,14 @@
 
 namespace App\Filament\Resources\TeachingJournals\Pages;
 
+use App\Filament\Exports\TeachingJournalExporter;
 use App\Filament\Resources\TeachingJournals\TeachingJournalResource;
 use App\Models\Classes;
 use App\Models\TeachingJournal;
 use App\Models\TeachingSchedule;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Actions\ExportAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Support\Enums\Width;
@@ -21,7 +23,11 @@ class ListTeachingJournals extends ListRecords
     {
         return [
             CreateAction::make()
-                ->label('Jurnal baru')
+                ->label('Jurnal baru'),
+            ExportAction::make()
+                ->label('Export jurnal')
+                ->color('warning')
+                ->exporter(TeachingJournalExporter::class),
         ];
     }
 
