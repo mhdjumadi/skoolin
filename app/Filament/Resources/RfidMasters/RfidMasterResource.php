@@ -21,8 +21,8 @@ class RfidMasterResource extends Resource
     protected static ?string $model = RfidMaster::class;
 
     protected static ?string $navigationLabel = 'RFID Master';
-
-    // protected static string|UnitEnum|null $navigationGroup = 'Master';
+    protected static ?string $modelLabel = 'RFID Master';
+    protected static ?string $pluralModelLabel = 'RFID Master';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
 
     public static function form(Schema $schema): Schema

@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\StudentAttendances\Tables;
 
+use App\Models\Classes;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class StudentAttendancesTable
@@ -20,6 +22,9 @@ class StudentAttendancesTable
                     ->searchable(),
                 TextColumn::make('academicYear.name')
                     ->label('Tahun ajaran')
+                    ->searchable(),
+                TextColumn::make('class.name')
+                    ->label('Kelas')
                     ->searchable(),
                 TextColumn::make('date')
                     ->label('Tanggal')
@@ -48,7 +53,19 @@ class StudentAttendancesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('academic_year_id')
+                    ->label('Tahun Akademik')
+                    ->relationship('academicYear', 'name'),
+
+
+                SelectFilter::make('student_id')
+                    ->label('Siswa')
+                    ->relationship('student', 'name'),
+
+                SelectFilter::make('class_id')
+                    ->label('Kelas')
+                    ->relationship('class', 'name'),
+
             ])
             ->recordActions([
                 ViewAction::make(),

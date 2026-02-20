@@ -95,6 +95,12 @@
     }
 }
 
+/* .fi-ta-ctn {
+    & .fi-ta-header {
+        @apply border-b-0;
+    }
+} */
+
 .fi-ta-table{
     &>thead {
         &>tr {

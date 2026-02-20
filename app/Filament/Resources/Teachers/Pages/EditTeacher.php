@@ -11,8 +11,6 @@ use Illuminate\Database\Eloquent\Model;
 class EditTeacher extends EditRecord
 {
     protected static string $resource = TeacherResource::class;
-    protected static ?string $title = 'Edit Guru';
-
 
     protected function getHeaderActions(): array
     {

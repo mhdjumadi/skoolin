@@ -21,6 +21,8 @@ class AttendanceTimeSettingResource extends Resource
     protected static ?string $model = AttendanceTimeSetting::class;
 
     protected static ?string $navigationLabel = 'Waktu Presensi';
+    protected static ?string $modelLabel = 'Waktu Presensi';
+    protected static ?string $pluralModelLabel = 'Waktu Presensi';
 
     protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClock;

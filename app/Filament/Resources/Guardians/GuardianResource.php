@@ -23,6 +23,8 @@ class GuardianResource extends Resource
     protected static ?string $model = Guardian::class;
 
     protected static ?string $navigationLabel = 'Orang Tua';
+    protected static ?string $modelLabel = 'Orang Tua';
+    protected static ?string $pluralModelLabel = 'Orang Tua';
 
     protected static string|UnitEnum|null $navigationGroup = 'Master';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;

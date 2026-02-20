@@ -40,6 +40,10 @@ class TeachingJournalForm
                         Textarea::make('material')
                             ->label('Materi')
                             ->required(),
+                        Textarea::make('activities')
+                            ->label('Kegiatan'),
+                        Textarea::make('assessment')
+                            ->label('Penilaian'),
                         Textarea::make('notes')
                             ->label('Catatan')
                     ])

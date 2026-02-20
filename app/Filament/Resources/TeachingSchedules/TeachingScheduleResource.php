@@ -23,6 +23,8 @@ class TeachingScheduleResource extends Resource
     protected static ?string $model = TeachingSchedule::class;
 
     protected static ?string $navigationLabel = 'Jadwal Mengajar';
+    protected static ?string $modelLabel = 'Jadwal Mengajar';
+    protected static ?string $pluralModelLabel = 'Jadwal Mengajar';
 
     protected static string|UnitEnum|null $navigationGroup = 'Akademik';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDateRange;

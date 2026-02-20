@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TeachingJournals\Schemas;
 
+use Filament\Forms\Components\Textarea;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Section;
@@ -38,12 +39,28 @@ class TeachingJournalInfolist
 
                                 TextEntry::make('teachingSchedule.class.name')
                                     ->label('Kelas'),
+
+                                TextEntry::make('start_time')
+                                    ->label('Mulai'),
+
+                                TextEntry::make('end_time')
+                                    ->label('Berakhir'),
                             ]),
 
                         Fieldset::make('Materi & Catatan')
                             ->schema([
                                 TextEntry::make('material')
                                     ->label('Materi')
+                                    ->columnSpanFull(),
+
+                                TextEntry::make('activities')
+                                    ->label('Kegiatan')
+                                    ->placeholder('-')
+                                    ->columnSpanFull(),
+
+                                TextEntry::make('assessment')
+                                    ->label('Penilaian')
+                                    ->placeholder('-')
                                     ->columnSpanFull(),
 
                                 TextEntry::make('notes')

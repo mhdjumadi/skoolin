@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('student_id')->constrained()->cascadeOnDelete();
             $table->foreignUuid('academic_year_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('class_id')->constrained()->nullOnDelete();
             $table->date('date');
             $table->time('check_in')->nullable();
             $table->time('check_out')->nullable();

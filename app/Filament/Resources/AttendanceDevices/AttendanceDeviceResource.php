@@ -22,6 +22,8 @@ class AttendanceDeviceResource extends Resource
     protected static ?string $model = AttendanceDevice::class;
 
     protected static ?string $navigationLabel = 'Perangkat Presensi';
+    protected static ?string $modelLabel = 'Perangkat Presensi';
+    protected static ?string $pluralModelLabel = 'Perangkat Presensi';
 
     protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog8Tooth;

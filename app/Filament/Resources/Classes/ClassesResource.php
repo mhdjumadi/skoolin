@@ -23,6 +23,8 @@ class ClassesResource extends Resource
 {
     protected static ?string $model = Classes::class;
     protected static ?string $navigationLabel = 'Kelas';
+    protected static ?string $modelLabel = 'Kelas';
+    protected static ?string $pluralModelLabel = 'Kelas';
 
     protected static string|UnitEnum|null $navigationGroup = 'Master';
 

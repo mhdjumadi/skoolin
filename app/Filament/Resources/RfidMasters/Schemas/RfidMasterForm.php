@@ -59,7 +59,8 @@ class RfidMasterForm
                                 TextInput::make('phone')
                                     ->label('No Hp')
                                     ->tel()
-                                    ->placeholder('08xxxxxxxxxx'),
+                                    ->prefix('62')
+                                    ->required(),
 
                                 Grid::make(2)->schema([
                                     TextInput::make('birth_place')
@@ -79,7 +80,8 @@ class RfidMasterForm
 
                                 Toggle::make('is_active')
                                     ->default(true),
-                            ])->createOptionUsing(function (array $data) {
+                            ])
+                            ->createOptionUsing(function (array $data) {
                                 $data['password'] = bcrypt($data['nisn']);
 
                                 return Student::create($data)->getKey();

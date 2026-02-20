@@ -22,6 +22,8 @@ class AcademicYearResource extends Resource
     protected static ?string $model = AcademicYear::class;
 
     protected static ?string $navigationLabel = 'Tahun Akademik';
+    protected static ?string $modelLabel = 'Tahun Akademik';
+    protected static ?string $pluralModelLabel = 'Tahun Akademik';
     protected static string|UnitEnum|null $navigationGroup = 'Master';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedNumberedList;
 

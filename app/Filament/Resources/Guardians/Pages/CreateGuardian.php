@@ -20,8 +20,7 @@ class CreateGuardian extends CreateRecord
             'phone' => $data['phone'],
             'gender' => $data['gender'] ?? null,
             'address' => $data['address'] ?? null,
-            'password' => bcrypt($data['email']),
-            'role' => 'guardian',
+            'password' => bcrypt($data['phone']),
         ]);
 
         $user->assignRole('guardian');

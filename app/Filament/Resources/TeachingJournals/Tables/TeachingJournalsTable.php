@@ -2,12 +2,18 @@
 
 namespace App\Filament\Resources\TeachingJournals\Tables;
 
+use App\Models\Classes;
+use App\Models\Subject;
+use App\Models\Teacher;
 use Carbon\Carbon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class TeachingJournalsTable
@@ -75,7 +81,23 @@ class TeachingJournalsTable
                     ->color('danger'),
             ])
             ->filters([
-                //
+                SelectFilter::make('day_id')
+                    ->label('Hari')
+                    ->relationship('teachingSchedule.day', 'name'),
+
+
+                SelectFilter::make('teacher_id')
+                    ->label('Guru')
+                    ->relationship('teachingSchedule.teacher.user', 'name'),
+
+                SelectFilter::make('class_id')
+                    ->label('Kelas')
+                    ->relationship('teachingSchedule.class', 'name'),
+
+                SelectFilter::make('subject_id')
+                    ->label('Mata Pelajaran')
+                    ->relationship('teachingSchedule.subject', 'name'),
+
             ])
             ->recordActions([
                 ViewAction::make(),

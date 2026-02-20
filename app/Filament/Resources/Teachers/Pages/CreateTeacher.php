@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Hash;
 class CreateTeacher extends CreateRecord
 {
     protected static string $resource = TeacherResource::class;
-    protected static ?string $title = 'Guru Baru';
 
     protected function handleRecordCreation(array $data): Model
     {

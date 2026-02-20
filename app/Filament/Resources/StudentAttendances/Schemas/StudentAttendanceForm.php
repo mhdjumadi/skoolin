@@ -3,10 +3,10 @@
 namespace App\Filament\Resources\StudentAttendances\Schemas;
 
 use App\Models\AcademicYear;
+use App\Models\Classes;
 use App\Models\Student;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TimePicker;
 use Filament\Schemas\Components\Section;
@@ -20,13 +20,17 @@ class StudentAttendanceForm
             ->components([
                 Section::make()
                     ->schema([
+                        Select::make('academic_year_id')
+                            ->label('Tahun Akademik')
+                            ->options(AcademicYear::all()->pluck('name', 'id')->toArray())
+                            ->required(),
                         Select::make('student_id')
                             ->label('Siswa')
                             ->options(Student::all()->pluck('name', 'id')->toArray())
                             ->required(),
-                        Select::make('academic_year_id')
-                            ->label('Tahun Akademik')
-                            ->options(AcademicYear::all()->pluck('name', 'id')->toArray())
+                        Select::make('class_id')
+                            ->label('Kelas')
+                            ->options(Classes::all()->pluck('name', 'id')->toArray())
                             ->required(),
                         DatePicker::make('date')
                             ->label('Tanggal')
@@ -45,7 +49,6 @@ class StudentAttendanceForm
                             ->required(),
                         Textarea::make('note')
                             ->label('Catatan')
-                            ->columnSpanFull(),
                     ])
                     ->columns('2')
                     ->columnSpanFull()

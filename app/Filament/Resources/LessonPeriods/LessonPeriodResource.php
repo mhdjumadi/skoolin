@@ -22,6 +22,8 @@ class LessonPeriodResource extends Resource
     protected static ?string $model = LessonPeriod::class;
 
     protected static ?string $navigationLabel = 'Jam Mengajar';
+    protected static ?string $modelLabel = 'Jam Mengajar';
+    protected static ?string $pluralModelLabel = 'Jam Mengajar';
 
     protected static string|UnitEnum|null $navigationGroup = 'Master';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;

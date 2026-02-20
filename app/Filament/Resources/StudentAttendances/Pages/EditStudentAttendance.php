@@ -13,8 +13,6 @@ class EditStudentAttendance extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-
-        dd($data);
         $data['updated_by'] = auth()->id();
 
         return $data;

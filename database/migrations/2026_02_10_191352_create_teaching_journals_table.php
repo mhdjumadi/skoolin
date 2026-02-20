@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->uuid('teaching_schedule_id');
             $table->date('date');
             $table->time('start_time')->useCurrent();
-            $table->time('end_time')->useCurrent();
+            $table->time('end_time')->nullable();
             $table->text('material')->nullable();
             $table->text('activities')->nullable();
             $table->text('assessment')->nullable();

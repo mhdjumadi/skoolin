@@ -32,6 +32,10 @@ class GuardianInfolist
                             ->placeholder('-')
                             ->icon('heroicon-o-envelope'),
 
+                        TextEntry::make('user.phone')
+                            ->label('No Hp')
+                            ->placeholder('-'),
+
                         IconEntry::make('is_notif')
                             ->label('Notifikasi Aktif')
                             ->boolean()

@@ -11,7 +11,6 @@ use Filament\Resources\Pages\ListRecords;
 class ListTeachers extends ListRecords
 {
     protected static string $resource = TeacherResource::class;
-    protected static ?string $title = 'Guru';
 
     protected function getHeaderActions(): array
     {

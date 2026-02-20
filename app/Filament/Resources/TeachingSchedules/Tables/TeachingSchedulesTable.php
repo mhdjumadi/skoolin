@@ -8,6 +8,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class TeachingSchedulesTable
@@ -51,7 +52,23 @@ class TeachingSchedulesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('day_id')
+                    ->label('Hari')
+                    ->relationship('day', 'name'),
+
+
+                SelectFilter::make('teacher_id')
+                    ->label('Guru')
+                    ->relationship('teacher.user', 'name'),
+
+                SelectFilter::make('class_id')
+                    ->label('Kelas')
+                    ->relationship('class', 'name'),
+
+                SelectFilter::make('subject_id')
+                    ->label('Mata Pelajaran')
+                    ->relationship('subject', 'name'),
+
             ])
             ->recordActions([
                 ViewAction::make(),

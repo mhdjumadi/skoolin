@@ -22,6 +22,8 @@ class WhatsappSettingResource extends Resource
     protected static ?string $model = WhatsappSetting::class;
 
     protected static ?string $navigationLabel = 'Notifikasi';
+    protected static ?string $modelLabel = 'Notifikasi';
+    protected static ?string $pluralModelLabel = 'Notifikasi';
 
     protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBellAlert;

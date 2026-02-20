@@ -5,11 +5,16 @@ namespace App\Filament\Resources\TeachingJournals\Pages;
 use App\Filament\Exports\TeachingJournalExporter;
 use App\Filament\Resources\TeachingJournals\TeachingJournalResource;
 use App\Models\Classes;
+use App\Models\JournalAttendance;
 use App\Models\TeachingJournal;
 use App\Models\TeachingSchedule;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Actions\ExportAction;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TimePicker;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Support\Enums\Width;
@@ -18,7 +23,6 @@ use Illuminate\Support\HtmlString;
 class ListTeachingJournals extends ListRecords
 {
     protected static string $resource = TeachingJournalResource::class;
-
     protected function getHeaderActions(): array
     {
         return [
@@ -38,99 +42,162 @@ class ListTeachingJournals extends ListRecords
     public function mount(): void
     {
         $this->classId = request()->query('token');
-
-        // Jangan pakai firstOrFail
-        $kelas = Classes::first();
-
-        if ($kelas) {
-            $this->classId = $kelas->id;
-        }
     }
 
 
     public function onboardingAction(): Action
     {
-        $kelas = Classes::findOrFail($this->classId);
+        $kelas = Classes::find($this->classId);
         $teacher = auth()->user()->teacher;
+
+        // --- 1. Validasi kelas & guru ---
+        if (!$kelas) {
+            return Action::make('info')
+                ->label('Info')
+                ->modalHeading('Maaf, Jadwal Tidak Tersedia!')
+                ->modalWidth('xl')
+                ->modalSubmitAction(false)
+                ->modalContent(fn() => new HtmlString(
+                    "<p class='text-sm text-gray-700'>Saat ini Anda tidak memiliki jadwal mengajar untuk kelas ini.</p>"
+                ));
+        }
 
         if (!$teacher) {
             return Action::make('info')
                 ->label('Info')
-                ->modalHeading('Akses ditolak')
+                ->modalHeading('Akses Ditolak')
                 ->modalSubmitAction(false)
                 ->modalContent(fn() => new HtmlString(
                     "<p class='text-sm text-gray-700'>Hanya guru yang dapat melakukan check-in jurnal.</p>"
                 ));
         }
 
-        // 1. Ambil schedule hari ini
-        $todayDay = now()->format('l');
+        // --- 2. Ambil jadwal hari ini ---
+        $todayNumber = now()->dayOfWeekIso;
         $schedules = TeachingSchedule::where('class_id', $kelas->id)
             ->where('teacher_id', $teacher->id)
-            ->where('day_name', $todayDay)
+            ->whereHas('day', fn($q) => $q->where('order', $todayNumber))
+            ->with('lessonPeriod')
             ->get();
 
         $now = now()->format('H:i:s');
-
-        $currentSchedule = $schedules->first(function ($s) use ($now) {
-            return $now >= $s->lessonPeriod->start_time && $now <= $s->lessonPeriod->end_time;
-        });
+        $currentSchedule = $schedules->first(fn($s) => $now >= $s->lessonPeriod->start_time && $now <= $s->lessonPeriod->end_time);
 
         if (!$currentSchedule) {
             return Action::make('info')
                 ->label('Info')
                 ->modalHeading('Maaf, Jadwal Tidak Tersedia!')
-                ->modalWidth(Width::ExtraLarge)
+                ->modalWidth('xl')
                 ->modalSubmitAction(false)
-                ->modalContent(fn() => new HtmlString("<p class='text-sm text-gray-700'>Saat ini anda tidak ada jadwal mengajar untuk kelas ini.</p>"));
+                ->modalContent(fn() => new HtmlString(
+                    "<p class='text-sm text-gray-700'>Saat ini Anda tidak memiliki jadwal mengajar untuk kelas ini.</p>"
+                ));
         }
 
-        // Ambil atau create jurnal hari ini untuk schedule
+        // --- 3. Cek jurnal hari ini ---
         $this->jurnal = TeachingJournal::where('teaching_schedule_id', $currentSchedule->id)
             ->whereDate('date', now())
             ->first();
 
+        if ($this->jurnal) {
+            if (!$this->jurnal->end_time) {
+                // Update end_time jika belum ada
+                $this->jurnal->update([
+                    'end_time' => now()->format('H:i:s'),
+                ]);
+
+                return Action::make('info')
+                    ->label('Info')
+                    ->modalHeading('Terima Kasih')
+                    ->modalSubmitAction(false)
+                    ->modalContent(fn() => new HtmlString(
+                        "<p class='text-sm text-gray-700'>Sesi mengajar telah selesai.</p>"
+                    ));
+            }
+
+            return Action::make('info')
+                ->label('Info')
+                ->modalHeading('Jurnal Sudah Dibuat')
+                ->modalSubmitAction(false)
+                ->modalContent(fn() => new HtmlString(
+                    "<p class='text-sm text-gray-700'>Jurnal untuk sesi ini sudah dibuat sebelumnya.</p>"
+                ));
+        }
+
+        // --- 4. Jika belum ada, tampilkan form untuk create jurnal ---
         return Action::make('checkin')
-            ->label($this->jurnal && !$this->jurnal->jam_selesai ? 'Selesaikan Sekarang' : 'Mulai Sekarang')
+            ->label('Mulai Sekarang')
             ->modalHeading('Jurnal Mengajar')
-            ->modalContent(fn() => view('filament.pages.journals', [
-                'record' => $this->jurnal,
-                'kelas' => $kelas,
-                'teacher' => $teacher,
-                'currentTime' => now(),
-            ]))
+            ->form([
+                Select::make('teaching_schedule_id')
+                    ->label('Jadwal Mengajar')
+                    ->options(
+                        TeachingSchedule::with(['day', 'lessonPeriod', 'subject', 'teacher'])
+                            ->get()
+                            ->pluck('full_label', 'id')
+                            ->toArray()
+                    )
+                    ->searchable()
+                    ->required()
+                    ->default($currentSchedule->id),
 
-            ->action(function () use ($currentSchedule) {
-                if ($this->jurnal) {
-                    if (!$this->jurnal->jam_selesai) {
-                        $this->jurnal->jam_selesai = now();
-                        $this->jurnal->save();
-                        Notification::make()
-                            ->title('Jurnal berhasil diupdate')
-                            ->success()
-                            ->send();
-                    } else {
-                        Notification::make()
-                            ->title('Jurnal sudah disimpan')
-                            ->success()
-                            ->send();
-                    }
-                } else {
-                    $this->jurnal = TeachingJournal::create([
-                        'teaching_schedule_id' => $currentSchedule->id,
-                        'date' => now(),
-                        'jam_mulai' => now(),
+                DatePicker::make('date')
+                    ->label('Tanggal')
+                    ->required()
+                    ->default(now()),
+
+                TimePicker::make('start_time')
+                    ->label('Mulai')
+                    ->required()
+                    ->default(now()),
+
+                TimePicker::make('end_time')
+                    ->label('Selesai'),
+
+                Textarea::make('material')
+                    ->label('Materi'),
+                Textarea::make('activities')
+                    ->label('Kegiatan'),
+                Textarea::make('assessment')
+                    ->label('Penilaian'),
+                Textarea::make('notes')
+                    ->label('Catatan'),
+            ])
+            ->action(function (array $data) use ($kelas) {
+
+                // --- 5. Buat jurnal baru ---
+                $this->jurnal = TeachingJournal::create([
+                    'teaching_schedule_id' => $data['teaching_schedule_id'],
+                    'date' => $data['date'],
+                    'start_time' => $data['start_time'] ?? now()->format('H:i:s'),
+                    'end_time' => $data['end_time'] ?? null,
+                    'material' => $data['material'] ?? null,
+                    'activities' => $data['activities'] ?? null,
+                    'assessment' => $data['assessment'] ?? null,
+                    'notes' => $data['notes'] ?? null,
+                ]);
+
+
+                // --- 6. Insert attendance siswa ---
+                $students = $kelas->students;
+                foreach ($students as $student) {
+                    JournalAttendance::create([
+                        'teaching_journal_id' => $this->jurnal->id,
+                        'student_id' => $student->id,
+                        'status' => 'hadir', // default hadir 
+                        'notes' => null,
                     ]);
-
-                    Notification::make()
-                        ->title('Jurnal berhasil disimpan')
-                        ->success()
-                        ->send();
                 }
 
-                return redirect()->route(
-                    'filament.admin.resources.teaching-journals.view',
-                    ['record' => $this->jurnal->id]
+                // --- 7. Notifikasi sukses ---
+                Notification::make()
+                    ->title('Jurnal berhasil disimpan')
+                    ->success()
+                    ->send();
+
+                // --- 8. Redirect ke halaman view jurnal ---
+                return redirect()->to(
+                    TeachingJournalResource::getUrl('view', ['record' => $this->jurnal->getKey()])
                 );
             });
     }

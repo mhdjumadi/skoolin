@@ -22,6 +22,8 @@ class StudentAttendanceResource extends Resource
     protected static ?string $model = StudentAttendance::class;
 
     protected static ?string $navigationLabel = 'Presensi Siswa';
+    protected static ?string $modelLabel = 'Presensi Siswa';
+    protected static ?string $pluralModelLabel = 'Presensi Siswa';
 
     protected static string|UnitEnum|null $navigationGroup = 'Akademik';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFingerPrint;

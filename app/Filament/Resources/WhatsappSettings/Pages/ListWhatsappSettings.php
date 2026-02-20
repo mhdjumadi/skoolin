@@ -15,7 +15,7 @@ class ListWhatsappSettings extends ListRecords
     {
         return [
             CreateAction::make()
-                ->label('Pengaturan whatsapp baru')
+                ->label('Pengaturan notifikasi baru')
                 ->visible(fn() => WhatsappSetting::count() === 0),
         ];
     }

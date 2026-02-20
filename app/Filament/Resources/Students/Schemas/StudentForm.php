@@ -45,7 +45,8 @@ class StudentForm
                                 TextInput::make('phone')
                                     ->label('No Hp')
                                     ->tel()
-                                    ->placeholder('08xxxxxxxxxx'),
+                                    ->prefix('62')
+                                    ->required(),
 
                                 Grid::make(2)->schema([
                                     TextInput::make('birth_place')
@@ -98,12 +99,17 @@ class StudentForm
                                             ->options([
                                                 'l' => 'Laki-laki',
                                                 'p' => 'Perempuan',
-                                            ]),
-
-                                        TextInput::make('phone')
+                                            ])
                                             ->required(),
 
-                                        TextInput::make('address'),
+                                        TextInput::make('phone')
+                                            ->label('No Hp')
+                                            ->tel()
+                                            ->prefix('62')
+                                            ->required(),
+
+                                        Textarea::make('address')
+                                            ->label('Alamat'),
 
                                         Toggle::make('is_notify')
                                             ->label('Terima Notifikasi')
@@ -117,7 +123,7 @@ class StudentForm
                                             'email' => $data['email'],
                                             'phone' => $data['phone'],
                                             'address' => $data['address'] ?? null,
-                                            'password' => bcrypt($data['email']),
+                                            'password' => bcrypt($data['phone']),
                                         ]);
 
                                         $user->assignRole('guardian');

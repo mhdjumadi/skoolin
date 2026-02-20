@@ -20,16 +20,20 @@ class TeachersTable
                 TextColumn::make('user.name')
                     ->label('Nama')
                     ->label('Nama')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('user.email')
                     ->label('Email')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('nip')
                     ->label('NIP')
+                    ->sortable()
                     ->searchable(),
                 TextColumn::make('nuptk')
                     ->label('NUPTK')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('user.gender')
                     ->label('Jenis Kelamin')
                     ->badge()
@@ -42,11 +46,6 @@ class TeachersTable
                     ->searchable(),
                 TextColumn::make('status')
                     ->searchable(),
-                TextColumn::make('user.roles.name')
-                    ->label('Role')
-                    ->formatStateUsing(fn ($roles) => $roles?->pluck('name')->implode(', ') ?? '-')
-                    ->sortable(),
-
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

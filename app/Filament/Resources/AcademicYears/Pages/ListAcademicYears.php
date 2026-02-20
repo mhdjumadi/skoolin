@@ -9,7 +9,6 @@ use Filament\Resources\Pages\ListRecords;
 class ListAcademicYears extends ListRecords
 {
     protected static string $resource = AcademicYearResource::class;
-    protected static ?string $title = 'Tahun Akademik';
 
     protected function getHeaderActions(): array
     {

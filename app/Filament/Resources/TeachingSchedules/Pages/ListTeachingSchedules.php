@@ -11,7 +11,6 @@ use Filament\Resources\Pages\ListRecords;
 class ListTeachingSchedules extends ListRecords
 {
     protected static string $resource = TeachingScheduleResource::class;
-
     protected function getHeaderActions(): array
     {
         return [

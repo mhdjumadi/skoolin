@@ -35,7 +35,8 @@ class TeacherForm
                                     ->options([
                                         'l' => 'Laki-laki',
                                         'p' => 'Perempuan',
-                                    ]),
+                                    ])
+                                    ->required(),
 
                                 TextInput::make('phone')
                                     ->label('No Hp')
@@ -44,7 +45,8 @@ class TeacherForm
                                     ->required(),
 
                                 Textarea::make('address')
-                                    ->label('Alamat'),
+                                    ->label('Alamat')
+                                    ->columnSpanFull(),
                             ])
                             ->columns(2),
 

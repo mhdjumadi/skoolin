@@ -21,6 +21,8 @@ class HomeroomTeacherResource extends Resource
 {
     protected static ?string $model = HomeroomTeacher::class;
     protected static ?string $navigationLabel = 'Wali Kelas';
+    protected static ?string $modelLabel = 'Wali Kelas';
+    protected static ?string $pluralModelLabel = 'Wali Kelas';
 
     protected static string|UnitEnum|null $navigationGroup = 'Master';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
