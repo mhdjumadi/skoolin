@@ -1,5 +1,5 @@
 @php
-    $url = url('/admin/journals?action=onboarding&token=' . $record->id);
+    $url = url('/admin/teaching-journals?action=onboarding&token=' . $record->id);
 @endphp
 
 <div class="flex flex-col items-center space-y-4">
