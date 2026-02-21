@@ -30,7 +30,6 @@ class ListTeachingJournals extends ListRecords
                 ->label('Jurnal baru'),
             ExportAction::make()
                 ->label('Export jurnal')
-                ->color('warning')
                 ->exporter(TeachingJournalExporter::class),
         ];
     }

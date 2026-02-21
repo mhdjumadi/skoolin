@@ -21,11 +21,9 @@ class ListStudents extends ListRecords
                 ->label('Siswa baru'),
             ExportAction::make()
                 ->label('Export siswa')
-                ->color('warning')
                 ->exporter(StudentExporter::class),
             ImportAction::make()
                 ->label('Import siswa')
-                ->color('info')
                 ->importer(StudentImporter::class)
         ];
     }

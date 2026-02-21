@@ -19,7 +19,6 @@ class ListTeachers extends ListRecords
             ->label('Guru baru'),
             ExportAction::make()
                 ->label('Export guru')
-                ->color('warning')
                 ->exporter(TeacherExporter::class),
         ];
     }

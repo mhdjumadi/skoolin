@@ -7,6 +7,8 @@ use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
 use Illuminate\Support\Number;
+use Illuminate\Support\Facades\Hash;
+
 
 class StudentImporter extends Importer
 {
@@ -15,35 +17,41 @@ class StudentImporter extends Importer
     public static function getColumns(): array
     {
         return [
-            ImportColumn::make('nisn'),
+            ImportColumn::make('nisn')
+                ->example(['12345678', '12312311']),
             ImportColumn::make('name')
+                ->example(['Putra contoh satu', 'Putri contoh dua'])
                 ->requiredMapping()
                 ->rules(['required']),
-            ImportColumn::make('gender'),
+            ImportColumn::make('gender')
+                ->example(['l', 'p'])
+                ->rules(['required']),
             ImportColumn::make('birth_place')
+                ->example(['Jakarta', 'Bandung'])
                 ->requiredMapping()
                 ->rules(['required']),
             ImportColumn::make('birth_date')
+                ->example(['2004-02-21', '2002-02-21'])
                 ->rules(['date']),
-            ImportColumn::make('phone'),
+            ImportColumn::make('phone')
+                ->example(['8531432176532', '81362536511'])
+                ->rules(['required']),
             ImportColumn::make('address')
+                ->example(['Jl. Pangrango utara NO.5', 'Jl. Diponegoro'])
                 ->requiredMapping()
-                ->rules(['required']),
-            ImportColumn::make('is_active')
-                ->requiredMapping()
-                ->boolean()
-                ->rules(['required', 'boolean']),
-            ImportColumn::make('password')
-                ->requiredMapping()
-                ->rules(['required']),
+                ->rules(['required'])
         ];
     }
 
     public function resolveRecord(): Student
     {
-        return Student::firstOrNew([
+        $student = Student::firstOrNew([
             'nisn' => $this->data['nisn'],
         ]);
+
+        $student->password = Hash::make($this->data['nisn']);
+
+        return $student;
     }
 
     public static function getCompletedNotificationBody(Import $import): string

@@ -18,7 +18,6 @@ class ListTeachingSchedules extends ListRecords
                 ->label('Jadwal baru'),
             ExportAction::make()
                 ->label('Export jadwal')
-                ->color('warning')
                 ->exporter(TeachingScheduleExporter::class),
         ];
     }

@@ -19,7 +19,6 @@ class ListSubjects extends ListRecords
             ->label('Mata pelajaran baru'),
             ExportAction::make()
                 ->label('Export mata pelajaran')
-                ->color('warning')
                 ->exporter(SubjectExporter::class),
         ];
     }

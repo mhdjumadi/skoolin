@@ -19,7 +19,6 @@ class ListHomeroomTeachers extends ListRecords
             ->label('Wali kelas baru'),
             ExportAction::make()
                 ->label('Export wali kelas')
-                ->color('warning')
                 ->exporter(HomeroomTeacherExporter::class),
         ];
     }

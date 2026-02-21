@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use Filament\Actions\Action;
 use Filament\Widgets\TableWidget;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;

@@ -20,7 +20,6 @@ class Student extends Model
         'address',
         'is_active',
         'password',
-        'academic_year_id',
     ];
 
     protected $casts = [

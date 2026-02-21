@@ -18,7 +18,6 @@ class ListStudentAttendances extends ListRecords
                 ->label('Presensi baru'),
             ExportAction::make()
                 ->label('Export presensi')
-                ->color('warning')
                 ->exporter(StudentAttendanceExporter::class),
         ];
     }

@@ -27,7 +27,11 @@ class StudentsTable
                     ->searchable(),
                 TextColumn::make('gender')
                     ->label('Jenis Kelamin')
-                    ->searchable(),
+                    ->badge()
+                    ->formatStateUsing(fn($state) => [
+                        'l' => 'Laki-laki',
+                        'p' => 'Perempuan',
+                    ][$state] ?? '-'),
                 TextColumn::make('birth_place')
                     ->label('Tempat Lahir')
                     ->searchable(),
