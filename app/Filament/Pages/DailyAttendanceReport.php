@@ -33,58 +33,22 @@ class DailyAttendanceReport extends Page implements HasTable
 
     protected function getTableQuery()
     {
-        $user = Auth::user();
-
         $query = Student::query()
             ->select([
                 'students.id',
                 'students.name',
-
+                'classes.name as class_name', // join kelas
                 DB::raw("SUM(CASE WHEN student_attendances.status = 'hadir' THEN 1 ELSE 0 END) AS hadir"),
                 DB::raw("SUM(CASE WHEN student_attendances.status = 'izin' THEN 1 ELSE 0 END) AS izin"),
                 DB::raw("SUM(CASE WHEN student_attendances.status = 'sakit' THEN 1 ELSE 0 END) AS sakit"),
                 DB::raw("SUM(CASE WHEN student_attendances.status = 'dispensasi' THEN 1 ELSE 0 END) AS dispensasi"),
             ])
-            ->leftJoin('student_attendances', 'student_attendances.student_id', '=', 'students.id')
+            ->leftJoin('student_attendances', function ($join) {
+                $join->on('student_attendances.student_id', '=', 'students.id');
+            })
+            ->leftJoin('classes', 'classes.id', '=', 'student_attendances.class_id') // join ke kelas
             ->where('students.is_active', true)
-            ->groupBy('students.id', 'students.name');
-
-        // ===== ROLE FILTER =====
-
-        // if ($user->hasRole('teacher') && $user->teacher) {
-
-        //     // Ambil data kelas guru wali beserta academic_year_id
-        //     $classData = $user->teacher
-        //         ->homeroomClasses()
-        //         ->get(['class_id', 'academic_year_id']);
-
-        //     $query->whereExists(function ($sub) use ($classData) {
-        //         $sub->select(DB::raw(1))
-        //             ->from('student_classes')
-        //             ->join('student_attendances', function ($join) {
-        //                 $join->on('student_attendances.student_id', '=', 'student_classes.student_id')
-        //                     ->on('student_attendances.academic_year_id', '=', 'student_classes.academic_year_id');
-        //             })
-        //             ->whereColumn('student_classes.student_id', 'students.id')
-        //             ->where(function ($q) use ($classData) {
-        //                 foreach ($classData as $class) {
-        //                     $q->orWhere(function ($qq) use ($class) {
-        //                         $qq->where('student_classes.class_id', $class->class_id)
-        //                             ->where('student_classes.academic_year_id', $class->academic_year_id);
-        //                     });
-        //                 }
-        //             });
-        //     });
-        // }
-
-        // if ($user->hasRole('guardian')) {
-        //     $query->whereExists(function ($sub) use ($user) {
-        //         $sub->select(DB::raw(1))
-        //             ->from('guardian_students')
-        //             ->whereColumn('guardian_students.student_id', 'students.id')
-        //             ->where('guardian_students.guardian_id', $user->guardian?->id);
-        //     });
-        // }
+            ->groupBy('students.id', 'students.name', 'classes.name'); // jangan lupa groupBy class_name
 
         return $query;
     }
@@ -96,7 +60,7 @@ class DailyAttendanceReport extends Page implements HasTable
                 TextColumn::make('name')
                     ->label('Nama Siswa')
                     ->searchable(),
-                TextColumn::make('class.name')
+                TextColumn::make('class_name')
                     ->label('Kelas')
                     ->searchable(),
                 TextColumn::make('hadir')
@@ -132,18 +96,9 @@ class DailyAttendanceReport extends Page implements HasTable
 
                 SelectFilter::make('class')
                     ->label('Kelas')
-                    ->query(function ($query, $classId) {
-                        $query->whereExists(function ($sub) use ($classId) {
-                            $sub->select(DB::raw(1))
-                                ->from('student_classes')
-                                ->join('student_attendances', function ($join) {
-                                    $join->on('student_attendances.student_id', '=', 'student_classes.student_id')
-                                        ->on('student_attendances.academic_year_id', '=', 'student_classes.academic_year_id');
-                                })
-                                ->whereColumn('student_classes.student_id', 'students.id')
-                                ->where('student_classes.class_id', $classId);
-                        });
-                    })
+                    ->relationship('attendances.class', 'name')
+                    ->searchable()
+                    ->multiple(),
             ])
             ->defaultSort('name');
     }
