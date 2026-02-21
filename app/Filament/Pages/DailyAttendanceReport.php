@@ -53,8 +53,12 @@ class DailyAttendanceReport extends Page implements HasTable
 
         if ($user->hasRole('teacher') && $user->teacher) {
 
-            $query->whereExists(function ($sub) use ($user) {
+            // Ambil data kelas guru wali beserta academic_year_id
+            $classData = $user->teacher
+                ->homeroomClasses()
+                ->get(['class_id', 'academic_year_id']);
 
+            $query->whereExists(function ($sub) use ($classData) {
                 $sub->select(DB::raw(1))
                     ->from('student_classes')
                     ->join('attendances', function ($join) {
@@ -62,12 +66,14 @@ class DailyAttendanceReport extends Page implements HasTable
                             ->on('attendances.academic_year_id', '=', 'student_classes.academic_year_id');
                     })
                     ->whereColumn('student_classes.student_id', 'students.id')
-                    ->whereIn(
-                        'student_classes.class_id',
-                        $user->teacher
-                            ->classes()
-                            ->pluck('classes.id')
-                    );
+                    ->where(function ($q) use ($classData) {
+                        foreach ($classData as $class) {
+                            $q->orWhere(function ($qq) use ($class) {
+                                $qq->where('student_classes.class_id', $class->class_id)
+                                    ->where('student_classes.academic_year_id', $class->academic_year_id);
+                            });
+                        }
+                    });
             });
         }
 
