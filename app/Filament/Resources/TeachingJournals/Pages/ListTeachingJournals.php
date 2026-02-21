@@ -8,6 +8,7 @@ use App\Models\Classes;
 use App\Models\JournalAttendance;
 use App\Models\TeachingJournal;
 use App\Models\TeachingSchedule;
+use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Actions\ExportAction;
@@ -98,30 +99,77 @@ class ListTeachingJournals extends ListRecords
             ->whereDate('date', now())
             ->first();
 
+
+
         if ($this->jurnal) {
             if (!$this->jurnal->end_time) {
-                // Update end_time jika belum ada
-                $this->jurnal->update([
-                    'end_time' => now()->format('H:i:s'),
-                ]);
+                $now = Carbon::now();
+                $scheduleEnd = Carbon::parse($currentSchedule->lessonPeriod->end_time);
 
-                return Action::make('info')
-                    ->label('Info')
-                    ->modalHeading('Terima Kasih')
-                    ->modalSubmitAction(false)
+                // Hitung selisih menit
+                $diffMinutes = $now->diffInMinutes($scheduleEnd, false);
+
+                if ($diffMinutes < 0) {
+                    $message = "Jam pelajaran sudah lewat <strong>" . abs($diffMinutes) . " menit</strong>.";
+                    $color = "text-red-600";
+                } elseif ($diffMinutes > 0) {
+                    $message = "Masih ada sisa waktu <strong>{$diffMinutes} menit</strong>.";
+                    $color = "text-green-600";
+                } else {
+                    $message = "Tepat di akhir jam pelajaran.";
+                    $color = "text-gray-700";
+                }
+
+                return Action::make('confirmEnd')
+                    ->label('Konfirmasi Selesai')
+                    ->modalHeading('Konfirmasi Akhiri Sesi')
+                    ->modalWidth('lg')
+                    ->modalSubmitActionLabel('OK')
+                    ->modalCancelActionLabel('Cancel')
                     ->modalContent(fn() => new HtmlString(
-                        "<p class='text-sm text-gray-700'>Sesi mengajar telah selesai.</p>"
-                    ));
+                        "<p class='text-sm {$color} mb-2'>{$message}</p>
+                 <p class='text-sm text-gray-500'>Apakah ingin mengakhiri sesi sekarang?</p>"
+                    ))
+                    ->action(function () {
+                        $this->jurnal->update([
+                            'end_time' => now(),
+                        ]);
+                    });
             }
 
             return Action::make('info')
                 ->label('Info')
-                ->modalHeading('Jurnal Sudah Dibuat')
+                ->modalHeading('Jurnal Sudah Ditutup')
                 ->modalSubmitAction(false)
                 ->modalContent(fn() => new HtmlString(
-                    "<p class='text-sm text-gray-700'>Jurnal untuk sesi ini sudah dibuat sebelumnya.</p>"
+                    "<p class='text-sm text-gray-700'>Jurnal untuk sesi ini sudah ditutup sebelumnya.</p>"
                 ));
         }
+
+        // if ($this->jurnal) {
+        //     if (!$this->jurnal->end_time) {
+        //         // Update end_time jika belum ada
+        //         $this->jurnal->update([
+        //             'end_time' => now()->format('H:i:s'),
+        //         ]);
+
+        //         return Action::make('info')
+        //             ->label('Info')
+        //             ->modalHeading('Terima Kasih')
+        //             ->modalSubmitAction(false)
+        //             ->modalContent(fn() => new HtmlString(
+        //                 "<p class='text-sm text-gray-700'>Sesi mengajar telah selesai.</p>"
+        //             ));
+        //     }
+
+        //     return Action::make('info')
+        //         ->label('Info')
+        //         ->modalHeading('Jurnal Sudah Dibuat')
+        //         ->modalSubmitAction(false)
+        //         ->modalContent(fn() => new HtmlString(
+        //             "<p class='text-sm text-gray-700'>Jurnal untuk sesi ini sudah dibuat sebelumnya.</p>"
+        //         ));
+        // }
 
         // --- 4. Jika belum ada, tampilkan form untuk create jurnal ---
         return Action::make('checkin')

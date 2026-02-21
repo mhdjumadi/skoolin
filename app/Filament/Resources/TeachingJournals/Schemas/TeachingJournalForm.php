@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\TeachingJournals\Schemas;
 
 use App\Models\TeachingSchedule;
+use Auth;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -31,12 +32,17 @@ class TeachingJournalForm
                             ->required(),
                         DatePicker::make('date')
                             ->label('Tanggal')
-                            ->required(),
+                            ->required()
+                            ->disabled(fn () => Auth::user()->hasRole('teacher')),
+
                         TimePicker::make('start_time')
                             ->label('Mulai')
-                            ->required(),
-                        TimePicker::make(name: 'end_time')
-                            ->label('Selesai'),
+                            ->required()
+                            ->disabled(fn () => Auth::user()->hasRole('teacher')),
+
+                        TimePicker::make('end_time')
+                            ->label('Selesai')
+                            ->disabled(fn () => Auth::user()->hasRole('teacher')),
                         Textarea::make('material')
                             ->label('Materi')
                             ->required(),
