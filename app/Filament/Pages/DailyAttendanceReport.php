@@ -51,40 +51,40 @@ class DailyAttendanceReport extends Page implements HasTable
 
         // ===== ROLE FILTER =====
 
-        if ($user->hasRole('teacher') && $user->teacher) {
+        // if ($user->hasRole('teacher') && $user->teacher) {
 
-            // Ambil data kelas guru wali beserta academic_year_id
-            $classData = $user->teacher
-                ->homeroomClasses()
-                ->get(['class_id', 'academic_year_id']);
+        //     // Ambil data kelas guru wali beserta academic_year_id
+        //     $classData = $user->teacher
+        //         ->homeroomClasses()
+        //         ->get(['class_id', 'academic_year_id']);
 
-            $query->whereExists(function ($sub) use ($classData) {
-                $sub->select(DB::raw(1))
-                    ->from('student_classes')
-                    ->join('attendances', function ($join) {
-                        $join->on('attendances.student_id', '=', 'student_classes.student_id')
-                            ->on('attendances.academic_year_id', '=', 'student_classes.academic_year_id');
-                    })
-                    ->whereColumn('student_classes.student_id', 'students.id')
-                    ->where(function ($q) use ($classData) {
-                        foreach ($classData as $class) {
-                            $q->orWhere(function ($qq) use ($class) {
-                                $qq->where('student_classes.class_id', $class->class_id)
-                                    ->where('student_classes.academic_year_id', $class->academic_year_id);
-                            });
-                        }
-                    });
-            });
-        }
+        //     $query->whereExists(function ($sub) use ($classData) {
+        //         $sub->select(DB::raw(1))
+        //             ->from('student_classes')
+        //             ->join('student_attendances', function ($join) {
+        //                 $join->on('student_attendances.student_id', '=', 'student_classes.student_id')
+        //                     ->on('student_attendances.academic_year_id', '=', 'student_classes.academic_year_id');
+        //             })
+        //             ->whereColumn('student_classes.student_id', 'students.id')
+        //             ->where(function ($q) use ($classData) {
+        //                 foreach ($classData as $class) {
+        //                     $q->orWhere(function ($qq) use ($class) {
+        //                         $qq->where('student_classes.class_id', $class->class_id)
+        //                             ->where('student_classes.academic_year_id', $class->academic_year_id);
+        //                     });
+        //                 }
+        //             });
+        //     });
+        // }
 
-        if ($user->hasRole('guardian')) {
-            $query->whereExists(function ($sub) use ($user) {
-                $sub->select(DB::raw(1))
-                    ->from('guardian_students')
-                    ->whereColumn('guardian_students.student_id', 'students.id')
-                    ->where('guardian_students.guardian_id', $user->guardian?->id);
-            });
-        }
+        // if ($user->hasRole('guardian')) {
+        //     $query->whereExists(function ($sub) use ($user) {
+        //         $sub->select(DB::raw(1))
+        //             ->from('guardian_students')
+        //             ->whereColumn('guardian_students.student_id', 'students.id')
+        //             ->where('guardian_students.guardian_id', $user->guardian?->id);
+        //     });
+        // }
 
         return $query;
     }
