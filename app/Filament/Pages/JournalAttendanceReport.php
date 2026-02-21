@@ -113,16 +113,18 @@ class JournalAttendanceReport extends Page implements HasTable
                             ->when(isset($data['until']), fn($q) => $q->whereDate('teaching_journals.date', '<=', $data['until']));
                     }),
 
-                SelectFilter::make('class')
+                SelectFilter::make('kelas')
                     ->label('Kelas')
                     ->relationship('teachingSchedule.class', 'name')
+                    ->multiple()
                     ->searchable()
-                    ->multiple(),
+                    ->preload(),
                 SelectFilter::make('teacher')
                     ->label('Guru')
                     ->relationship('teachingSchedule.teacher.user', 'name')
                     ->searchable()
-                    ->multiple(),
+                    ->multiple()
+                    ->preload(),
             ])
             ->defaultSort('date', 'desc');
     }

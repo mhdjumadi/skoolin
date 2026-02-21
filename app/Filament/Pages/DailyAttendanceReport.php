@@ -2,21 +2,19 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Classes;
 use App\Models\Student;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
-use Filament\Tables\Table;
-use Filament\Tables\Contracts\HasTable;
-use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\DatePicker;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Actions\ExportAction;
 use Filament\Actions\Exports\Enums\ExportFormat;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 use BackedEnum;
 
@@ -26,59 +24,62 @@ class DailyAttendanceReport extends Page implements HasTable
 
     protected string $view = 'filament.pages.daily-attendance-report';
 
-    protected static ?string $title = 'Presensi Harian';
     protected static ?string $navigationLabel = 'Presensi Harian';
+    protected static ?string $modelLabel = 'Presensi Harian';
+    protected static ?string $pluralModelLabel = 'Presensi Harian';
+
     protected static string|UnitEnum|null $navigationGroup = 'Laporan';
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::CalendarDays;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentCheck;
+
+    public ?array $classId = null; // property untuk filter kelas
+
 
     protected function getTableQuery()
     {
         $query = Student::query()
-            ->select([
-                'students.id',
-                'students.name as student_name',
-                'classes.name as class_name', // join kelas
-                DB::raw("SUM(CASE WHEN student_attendances.status = 'hadir' THEN 1 ELSE 0 END) AS hadir"),
-                DB::raw("SUM(CASE WHEN student_attendances.status = 'izin' THEN 1 ELSE 0 END) AS izin"),
-                DB::raw("SUM(CASE WHEN student_attendances.status = 'sakit' THEN 1 ELSE 0 END) AS sakit"),
-                DB::raw("SUM(CASE WHEN student_attendances.status = 'dispensasi' THEN 1 ELSE 0 END) AS dispensasi"),
+            ->with('attendances.class')
+            ->withCount([
+                'attendances as hadir_count' => fn($q) => $q->where('status', 'hadir'),
+                'attendances as izin_count' => fn($q) => $q->where('status', 'izin'),
+                'attendances as sakit_count' => fn($q) => $q->where('status', 'sakit'),
+                'attendances as dispensasi_count' => fn($q) => $q->where('status', 'dispensasi'),
             ])
-            ->leftJoin('student_attendances', function ($join) {
-                $join->on('student_attendances.student_id', '=', 'students.id');
-            })
-            ->leftJoin('classes', 'classes.id', '=', 'student_attendances.class_id') // join ke kelas
-            ->where('students.is_active', true)
-            ->groupBy('students.id', 'student_name', 'class_name'); // jangan lupa groupBy class_name
+            ->where('students.is_active', true);
 
         return $query;
     }
 
-    public function table(Table $table): Table
+    public function table(Tables\Table $table): Tables\Table
     {
         return $table
             ->columns([
-                TextColumn::make('student_name')
+                TextColumn::make('name')
                     ->label('Nama Siswa')
                     ->searchable(),
-                TextColumn::make('class_name')
+                TextColumn::make('attendances.class.name')
                     ->label('Kelas')
                     ->searchable(),
-                TextColumn::make('hadir')
+                TextColumn::make('attendances.academicYear.name')
+                    ->label('Tahun Akademik')
+                    ->searchable(),
+                TextColumn::make('hadir_count')
                     ->label('Hadir')
                     ->badge()->color('success'),
-                TextColumn::make('izin')
-                    ->label('Izin')->badge()
+                TextColumn::make('izin_count')
+                    ->label('Izin')
+                    ->badge()
                     ->color('warning'),
-                TextColumn::make('sakit')
+                TextColumn::make('sakit_count')
                     ->label('Sakit')
                     ->badge()
                     ->color('info'),
-                TextColumn::make('dispensasi')
+                TextColumn::make('dispensasi_count')
                     ->label('Dispensasi')
                     ->badge()
                     ->color('gray'),
             ])
             ->filters([
+                // Filter tanggal
                 Filter::make('date')
                     ->form([
                         DatePicker::make('from')
@@ -86,29 +87,39 @@ class DailyAttendanceReport extends Page implements HasTable
                             ->default(now()->startOfMonth()),
                         DatePicker::make('until')
                             ->label('Sampai')
-                            ->default(now()),
+                            ->default(now()->addDay()),
                     ])
                     ->query(function ($query, $data) {
-                        return $query
-                            ->when(isset($data['from']), fn($q) => $q->whereDate('date', '>=', $data['from']))
-                            ->when(isset($data['until']), fn($q) => $q->whereDate('date', '<=', $data['until']));
+                        if (!empty($data['from']) && !empty($data['until'])) {
+                            $query->whereHas('attendances', function ($q) use ($data) {
+                                $q->whereBetween('date', [$data['from'], $data['until']]);
+                            });
+                        }
                     }),
+                // Filter kelas
+                SelectFilter::make('academic_year')
+                    ->label('Tahun Akademik')
+                    ->relationship('attendances.academicYear', 'name')
+                    ->multiple()
+                    ->searchable()
+                    ->preload(),
 
-                SelectFilter::make('class')
+                // Filter kelas
+                SelectFilter::make('kelas')
                     ->label('Kelas')
                     ->relationship('attendances.class', 'name')
+                    ->multiple()
                     ->searchable()
-                    ->multiple(),
+                    ->preload(),
             ])
-            ->defaultSort('student_name');
+            ->defaultSort('name');
     }
 
-    protected function getHeaderActions(): array
+    protected function getTableHeaderActions(): array
     {
         return [
             ExportAction::make()
-                ->label('Export laporan')
-                ->icon('heroicon-o-arrow-down-tray')
+                ->label('Export Laporan')
                 ->formats([ExportFormat::Xlsx]),
         ];
     }
