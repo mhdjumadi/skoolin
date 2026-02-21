@@ -36,7 +36,7 @@ class DailyAttendanceReport extends Page implements HasTable
         $query = Student::query()
             ->select([
                 'students.id',
-                'students.name',
+                'students.name as student_name',
                 'classes.name as class_name', // join kelas
                 DB::raw("SUM(CASE WHEN student_attendances.status = 'hadir' THEN 1 ELSE 0 END) AS hadir"),
                 DB::raw("SUM(CASE WHEN student_attendances.status = 'izin' THEN 1 ELSE 0 END) AS izin"),
@@ -57,7 +57,7 @@ class DailyAttendanceReport extends Page implements HasTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')
+                TextColumn::make('student_name')
                     ->label('Nama Siswa')
                     ->searchable(),
                 TextColumn::make('class_name')
