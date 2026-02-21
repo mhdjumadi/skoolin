@@ -107,13 +107,30 @@ class ListTeachingJournals extends ListRecords
                 $scheduleEnd = Carbon::parse($currentSchedule->lessonPeriod->end_time);
 
                 // Hitung selisih menit
-                $diffMinutes = $now->diffInMinutes($scheduleEnd, false);
+                $now = now();
+                $scheduleEnd = Carbon::parse($currentSchedule->lessonPeriod->end_time);
 
-                if ($diffMinutes < 0) {
-                    $message = "Jam pelajaran sudah lewat <strong>" . abs($diffMinutes) . " menit</strong>.";
+                $diffSeconds = $now->diffInSeconds($scheduleEnd, false);
+                $absSeconds = abs($diffSeconds);
+
+                $hours = intdiv($absSeconds, 3600);
+                $minutes = intdiv($absSeconds % 3600, 60);
+
+                // Format waktu yang enak dibaca
+                if ($absSeconds < 60) {
+                    $timeText = 'kurang dari 1 menit';
+                } elseif ($hours > 0) {
+                    $timeText = $hours . ' jam' . ($minutes > 0 ? " {$minutes} menit" : '');
+                } else {
+                    $timeText = $minutes . ' menit';
+                }
+
+                // Tentukan status
+                if ($diffSeconds < 0) {
+                    $message = "Jam pelajaran sudah lewat <strong>{$timeText}</strong>.";
                     $color = "text-red-600";
-                } elseif ($diffMinutes > 0) {
-                    $message = "Masih ada sisa waktu <strong>{$diffMinutes} menit</strong>.";
+                } elseif ($diffSeconds > 0) {
+                    $message = "Masih ada sisa waktu <strong>{$timeText}</strong>.";
                     $color = "text-green-600";
                 } else {
                     $message = "Tepat di akhir jam pelajaran.";
