@@ -48,7 +48,7 @@ class DailyAttendanceReport extends Page implements HasTable
             })
             ->leftJoin('classes', 'classes.id', '=', 'student_attendances.class_id') // join ke kelas
             ->where('students.is_active', true)
-            ->groupBy('students.id', 'students.name', 'classes.name'); // jangan lupa groupBy class_name
+            ->groupBy('students.id', 'student_name', 'class_name'); // jangan lupa groupBy class_name
 
         return $query;
     }
@@ -100,7 +100,7 @@ class DailyAttendanceReport extends Page implements HasTable
                     ->searchable()
                     ->multiple(),
             ])
-            ->defaultSort('name');
+            ->defaultSort('student_name');
     }
 
     protected function getHeaderActions(): array
