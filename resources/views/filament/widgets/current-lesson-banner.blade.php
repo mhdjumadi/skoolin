@@ -15,7 +15,7 @@
 
             <!-- Info pelajaran dengan marquee jika panjang -->
             <div class="overflow-hidden whitespace-nowrap mt-4">
-                <div class="inline-block animate-marquee" x-text="text"></div>
+                <div class="inline-block animate-marquee uppercase" x-text="text"></div>
             </div>
         </div>
     {{-- </x-filament::section> --}}

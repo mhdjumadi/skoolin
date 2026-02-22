@@ -1,14 +1,19 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\Admin;
 
 use App\Models\AcademicYear;
 use App\Models\TeachingJournal;
 use App\Models\TeachingSchedule;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\Widget;
 
 class CurrentLessonBanner extends Widget
 {
+    use HasWidgetShield;
+    protected static ?int $sort = 0;
+
+
     protected string $view = 'filament.widgets.current-lesson-banner';
 
     protected int|string|array $columnSpan = 'full'; // full width
@@ -37,19 +42,33 @@ class CurrentLessonBanner extends Widget
 
         $activeYear = AcademicYear::where('is_active', true)->first();
 
-        // Ambil semua jadwal yang sedang berlangsung sekarang
+        $user = auth()->user();
         $currentLessons = TeachingSchedule::query()
-            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
+            ->when(
+                $activeYear,
+                fn($q) => $q->where('academic_year_id', $activeYear->id)
+            )
+
+            // Hari ini
             ->whereHas('day', fn($q) => $q->where('order', $todayNumber))
+
+            // Jam yang sedang berlangsung
             ->whereHas('lessonPeriod', function ($q) use ($now) {
                 $q->whereTime('start_time', '<=', $now->format('H:i:s'))
                     ->whereTime('end_time', '>=', $now->format('H:i:s'));
             })
+
+            // 👇 Jika login sebagai guru, batasi hanya jadwal dia
+            ->when(
+                $user->hasRole('teacher') && $user->teacher,
+                fn($q) => $q->where('teacher_id', $user->teacher->id)
+            )
+
             ->with(['lessonPeriod', 'class', 'subject', 'teacher.user'])
             ->get();
 
         if ($currentLessons->isEmpty()) {
-            $this->currentLessonText = "Tidak ada pelajaran pada jam ini";
+            $this->currentLessonText = "Tidak ada pelajaran pada jam ini!";
             $this->currentLessonStatus = 'belum';
             $this->currentTime = $now->format('H:i:s');
             return;

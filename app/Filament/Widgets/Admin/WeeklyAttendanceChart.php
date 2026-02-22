@@ -1,15 +1,18 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\Admin;
 
-use App\Models\AcademicYear;
 use App\Models\Student;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\ChartWidget;
 use App\Models\StudentAttendance;
 use Carbon\Carbon;
 
-class MonthlyAttendanceChart extends ChartWidget
+class WeeklyAttendanceChart extends ChartWidget
 {
+    use HasWidgetShield;
+    protected static ?int $sort = 2;
+
     protected ?string $heading = 'Kehadiran Siswa 7 Hari Terakhir';
 
     protected function getData(): array

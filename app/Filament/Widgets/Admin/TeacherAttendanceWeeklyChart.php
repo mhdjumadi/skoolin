@@ -1,15 +1,19 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\Admin;
 
 use App\Models\AcademicYear;
 use App\Models\TeachingJournal;
 use App\Models\TeachingSchedule;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Carbon\Carbon;
 use Filament\Widgets\ChartWidget;
 
 class TeacherAttendanceWeeklyChart extends ChartWidget
 {
+    use HasWidgetShield;
+    protected static ?int $sort = 3;
+
     protected ?string $heading = 'Kehadiran Guru Mengajar';
 
     protected function getData(): array
@@ -22,17 +26,29 @@ class TeacherAttendanceWeeklyChart extends ChartWidget
         }
 
         $percentage = [];
-
+        $user = auth()->user();
         foreach ($dates as $date) {
             $todayNumber = Carbon::parse($date)->dayOfWeekIso; // 1=Mon ... 7=Sun
 
-            // Ambil semua jadwal hari itu
-            $schedules = TeachingSchedule::when(
-                $activeYear,
-                fn($q) => $q->where('academic_year_id', $activeYear->id)
-            )
-                ->whereHas('day', fn($q) => $q->where('order', $todayNumber))
-                ->get();
+            $schedulesQuery = TeachingSchedule::query()
+
+                // Filter tahun ajaran aktif
+                ->when(
+                    $activeYear,
+                    fn($q) => $q->where('academic_year_id', $activeYear->id)
+                )
+
+                // Filter hari
+                ->whereHas('day', fn($q) => $q->where('order', $todayNumber));
+
+            // ==============================
+            // Jika login sebagai Guru
+            // ==============================
+            if ($user->hasRole('teacher') && $user->teacher) {
+                $schedulesQuery->where('teacher_id', $user->teacher->id);
+            }
+
+            $schedules = $schedulesQuery->get();
 
             $totalSchedules = $schedules->count();
 

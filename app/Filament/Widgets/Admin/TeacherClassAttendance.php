@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\Admin;
 
 use App\Filament\Resources\TeachingSchedules\TeachingScheduleResource;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Filters\SelectFilter;
@@ -17,10 +18,10 @@ use Carbon\Carbon;
 
 class TeacherClassAttendance extends TableWidget
 {
-    protected static ?string $heading = 'Kehadiran Guru per Kelas Hari Ini';
+    use HasWidgetShield;
+    protected static ?int $sort = 4;
 
-    // Full width di dashboard
-    // protected int|string|array $columnSpan = 'full';
+    protected static ?string $heading = 'Kehadiran Guru per Kelas Hari Ini';
 
     public function table(Table $table): Table
     {
@@ -40,44 +41,29 @@ class TeacherClassAttendance extends TableWidget
 
                 TextColumn::make('class.name')
                     ->label('Kelas')
-                    ->searchable()
                     ->sortable(),
-
-                // TextColumn::make('subject.name')
-                //     ->label('Mata Pelajaran')
-                //     ->searchable(),
-
-                // TextColumn::make('teacher.user.name')
-                //     ->label('Guru')
-                //     ->searchable(),
 
                 TextColumn::make('status')
                     ->label('Status Mengajar')
                     ->getStateUsing(function ($record) use ($journalsToday) {
                         if (!isset($journalsToday[$record->id])) {
-                            return '❌ Tidak Ada Guru';
+                            return 'Tidak Ada Jurnal';
                         }
 
                         return $journalsToday[$record->id]->end_time
-                            ? '✅ Selesai'
-                            : '⏳ Proses Mengajar';
+                            ? 'Selesai'
+                            : 'Sedang Mengajar';
                     })
+                    ->badge()
                     ->color(function ($state) {
                         return match ($state) {
-                            '✅ Sudah Mengajar' => 'success',
-                            '⏳ Sedang Mengajar' => 'warning',
+                            'Selesai' => 'success',
+                            'Sedang Mengajar' => 'warning',
                             default => 'danger',
                         };
                     }),
             ])
             ->filters([
-                SelectFilter::make('class')
-                    ->label('Filter Kelas')
-                    ->relationship('class', 'name'),
-
-                SelectFilter::make('teacher')
-                    ->label('Filter Guru')
-                    ->relationship('teacher.user', 'name'),
             ])
             ->actions([
                 ViewAction::make('view')
@@ -95,12 +81,19 @@ class TeacherClassAttendance extends TableWidget
     protected function getSchedulesQuery(): Builder
     {
         $todayNumber = now()->dayOfWeekIso; // 1 = Senin ... 7 = Minggu
-
         $activeYear = AcademicYear::where('is_active', true)->first();
+        $user = auth()->user();
 
         return TeachingSchedule::query()
             ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
             ->whereHas('day', fn($q) => $q->where('order', $todayNumber))
+
+            // 👇 Jika login sebagai guru
+            ->when(
+                $user->hasRole('teacher') && $user->teacher,
+                fn($q) => $q->where('teacher_id', $user->teacher->id)
+            )
+
             ->with(['class', 'lessonPeriod', 'subject', 'teacher.user']);
     }
 }

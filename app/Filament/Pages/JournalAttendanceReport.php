@@ -3,15 +3,13 @@
 namespace App\Filament\Pages;
 
 use App\Models\TeachingJournal;
-use App\Models\Classes;
-use App\Models\Teacher;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Forms\Components\DatePicker;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
-use Filament\Tables\Filters\DateFilter;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -24,6 +22,8 @@ use BackedEnum;
 class JournalAttendanceReport extends Page implements HasTable
 {
     use InteractsWithTable;
+    use HasPageShield;
+
 
     protected string $view = 'filament.pages.journal-attendance-report';
     protected static ?string $navigationLabel = 'Presensi Jurnal';
@@ -33,10 +33,6 @@ class JournalAttendanceReport extends Page implements HasTable
     protected static string|UnitEnum|null $navigationGroup = 'Laporan';
     protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentCheck;
 
-    public ?string $date = null;
-    public ?int $classId = null;
-    public ?int $teacherId = null;
-
     protected function getTableQuery()
     {
         $query = TeachingJournal::query()
@@ -45,20 +41,21 @@ class JournalAttendanceReport extends Page implements HasTable
                 'teachingSchedule.class',
                 'teachingSchedule.subject',
                 'teachingSchedule.teacher.user',
+                'teachingSchedule.academicYear',
                 'attendances.student',
             ]);
 
-        if ($this->date) {
-            $query->whereDate('date', $this->date);
-        }
+        // if ($this->date) {
+        //     $query->whereDate('date', $this->date);
+        // }
 
-        if ($this->classId) {
-            $query->whereHas('teachingSchedule', fn($q) => $q->where('class_id', $this->classId));
-        }
+        // if ($this->classId) {
+        //     $query->whereHas('teachingSchedule', fn($q) => $q->where('class_id', $this->classId));
+        // }
 
-        if ($this->teacherId) {
-            $query->whereHas('teachingSchedule', fn($q) => $q->where('teacher_id', $this->teacherId));
-        }
+        // if ($this->teacherId) {
+        //     $query->whereHas('teachingSchedule', fn($q) => $q->where('teacher_id', $this->teacherId));
+        // }
 
         return $query;
     }
@@ -113,6 +110,14 @@ class JournalAttendanceReport extends Page implements HasTable
                             ->when(isset($data['until']), fn($q) => $q->whereDate('teaching_journals.date', '<=', $data['until']));
                     }),
 
+                // Filter tahun akademik
+                SelectFilter::make('academic_year')
+                    ->label('Tahun Akademik')
+                    ->relationship('teachingSchedule.academicYear', 'name')
+                    ->multiple()
+                    ->searchable()
+                    ->preload(),
+
                 SelectFilter::make('kelas')
                     ->label('Kelas')
                     ->relationship('teachingSchedule.class', 'name')
@@ -121,10 +126,12 @@ class JournalAttendanceReport extends Page implements HasTable
                     ->preload(),
                 SelectFilter::make('teacher')
                     ->label('Guru')
-                    ->relationship('teachingSchedule.teacher.user', 'name')
+                    ->relationship('teachingSchedule.teacher', 'id') // pakai id dulu
+                    ->getOptionLabelFromRecordUsing(fn($record) => $record->user->name)
+                    ->visible(fn() => !auth()->user()->hasRole('teacher'))
                     ->searchable()
                     ->multiple()
-                    ->preload(),
+                    ->preload()
             ])
             ->defaultSort('date', 'desc');
     }

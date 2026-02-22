@@ -1,19 +1,22 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\Admin;
 
 use App\Models\AcademicYear;
 use App\Models\Classes;
 use App\Models\Student;
 use App\Models\StudentAttendance;
-use App\Models\StudentClass;
 use App\Models\Subject;
 use App\Models\Teacher;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class AdminStatsOverview extends StatsOverviewWidget
 {
+    use HasWidgetShield;
+    protected static ?int $sort = 1;
+
     protected function getStats(): array
     {
         $activeYear = AcademicYear::where('is_active', true)->first();
@@ -54,6 +57,36 @@ class AdminStatsOverview extends StatsOverviewWidget
             $descriptionColor = 'gray';
         }
 
+        $user = auth()->user();
+        if ($user->hasRole('teacher')) {
+
+            return [
+
+                Stat::make('Tahun Ajaran Aktif', $activeYear?->name ?? '-')
+                    ->description(
+                        $activeYear
+                        ? $activeYear->start_date . ' - ' . $activeYear->end_date
+                        : 'Belum ada tahun ajaran aktif'
+                    )
+                    ->color('primary')
+                    ->icon('heroicon-o-calendar'),
+
+                Stat::make(
+                    'Total Siswa Aktif',
+                    Student::where('is_active', true)->count()
+                )
+                    ->color('info')
+                    ->icon('heroicon-o-academic-cap'),
+
+                Stat::make('Siswa Hadir Hari Ini', $presentToday)
+                    ->description($description)
+                    ->descriptionIcon($descriptionIcon)
+                    ->descriptionColor($descriptionColor)
+                    ->color('success')
+                    ->icon('heroicon-o-user-group'),
+            ];
+        }
+
         return [
 
             Stat::make('Tahun Ajaran Aktif', $activeYear?->name ?? '-')
@@ -85,8 +118,8 @@ class AdminStatsOverview extends StatsOverviewWidget
                 ->description($description)
                 ->descriptionIcon($descriptionIcon)
                 ->descriptionColor($descriptionColor)
-                ->color('info')
-                ->icon('heroicon-o-user-group')
+                ->color('success')
+                ->icon('heroicon-o-user-group'),
         ];
     }
 }

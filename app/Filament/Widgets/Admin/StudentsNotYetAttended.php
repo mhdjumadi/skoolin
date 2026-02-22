@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\Admin;
 
-use Filament\Actions\Action;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\TableWidget;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
@@ -13,6 +13,9 @@ use App\Models\StudentAttendance;
 
 class StudentsNotYetAttended extends TableWidget
 {
+    use HasWidgetShield;
+    protected static ?int $sort = 5;
+
     protected static ?string $heading = 'Siswa Belum Absen Hari Ini';
 
     public function table(Table $table): Table
@@ -33,20 +36,14 @@ class StudentsNotYetAttended extends TableWidget
             )
             ->columns([
                 TextColumn::make('nisn')
-                    ->label('NISN')
-                    ->searchable(),
+                    ->label('NISN'),
                 TextColumn::make('name')
-                    ->label('Nama Siswa')
-                    ->searchable(),
+                    ->label('Nama Siswa'),
                 TextColumn::make('classes.name')
                     ->label('Kelas')
-                    ->sortable()
-                    ->searchable(),
+                    ->sortable(),
             ])
             ->filters([
-                SelectFilter::make('class_id')
-                    ->label('Filter Kelas')
-                    ->relationship('classes', 'name'),
             ]);
     }
 }

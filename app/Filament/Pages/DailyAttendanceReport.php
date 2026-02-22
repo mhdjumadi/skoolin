@@ -2,8 +2,8 @@
 
 namespace App\Filament\Pages;
 
-use App\Models\Classes;
 use App\Models\Student;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
@@ -21,6 +21,8 @@ use BackedEnum;
 class DailyAttendanceReport extends Page implements HasTable
 {
     use InteractsWithTable;
+    use HasPageShield;
+
 
     protected string $view = 'filament.pages.daily-attendance-report';
 
@@ -96,7 +98,7 @@ class DailyAttendanceReport extends Page implements HasTable
                             });
                         }
                     }),
-                // Filter kelas
+                // Filter tahun akademik
                 SelectFilter::make('academic_year')
                     ->label('Tahun Akademik')
                     ->relationship('attendances.academicYear', 'name')
