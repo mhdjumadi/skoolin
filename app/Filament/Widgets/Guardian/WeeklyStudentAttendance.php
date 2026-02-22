@@ -1,14 +1,12 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\Guardian;
 
 use App\Filament\Resources\Students\StudentResource;
-use App\Filament\Resources\TeachingSchedules\TeachingScheduleResource;
 use App\Models\Student;
 use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\ViewAction;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Widgets\TableWidget;
@@ -44,7 +42,6 @@ class WeeklyStudentAttendance extends TableWidget
                 TextColumn::make('name')
                     ->label('Nama Anak')
                     ->sortable(),
-                    // ->searchable(),
 
                 TextColumn::make('attendances.class.name')
                     ->label('Kelas')

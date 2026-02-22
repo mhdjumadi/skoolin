@@ -64,12 +64,21 @@ class AttendancesRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                TextEntry::make('id')->label('ID'),
-                TextEntry::make('student.nama')->label('Nama Siswa'),
-                TextEntry::make('status')->label('Status'),
-                TextEntry::make('notes')->label('Keterangan')->placeholder('-'),
-                TextEntry::make('created_at')->dateTime()->label('Dibuat')->placeholder('-'),
-                TextEntry::make('updated_at')->dateTime()->label('Diupdate')->placeholder('-'),
+                TextEntry::make('id')
+                    ->label('ID'),
+                TextEntry::make('student.nama')
+                    ->label('Nama Siswa'),
+                TextEntry::make('status')
+                    ->label('Status'),
+                TextEntry::make('notes')
+                    ->label('Keterangan')
+                    ->placeholder('-'),
+                TextEntry::make('created_at')
+                    ->dateTime()->label('Dibuat')
+                    ->placeholder('-'),
+                TextEntry::make('updated_at')
+                    ->dateTime()->label('Diupdate')
+                    ->placeholder('-'),
             ]);
     }
 
@@ -99,8 +108,14 @@ class AttendancesRelationManager extends RelationManager
                     ->searchable()
                     ->inline()
                     ->placeholder('-'),
-                TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('created_at')
+                    ->dateTime()
+
+                    ->sortable()->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //

@@ -21,8 +21,9 @@ class TeachingScheduleExporter extends Exporter
             ExportColumn::make('class_id'),
             ExportColumn::make('teacher_id'),
             ExportColumn::make('subject_id'),
-            ExportColumn::make('lesson_period_id'),
             ExportColumn::make('day_id'),
+            ExportColumn::make('start_period_id'),
+            ExportColumn::make('end_period_id'),
             ExportColumn::make('created_at'),
             ExportColumn::make('updated_at'),
         ];

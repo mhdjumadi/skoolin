@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\TeachingJournal;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
+use Carbon\Carbon;
 use Filament\Forms\Components\DatePicker;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
@@ -27,6 +28,7 @@ class JournalAttendanceReport extends Page implements HasTable
 
     protected string $view = 'filament.pages.journal-attendance-report';
     protected static ?string $navigationLabel = 'Presensi Jurnal';
+    protected static ?string $title = 'Presensi Jurnal';
     protected static ?string $modelLabel = 'Presensi Jurnal';
     protected static ?string $pluralModelLabel = 'Presensi Jurnal';
 
@@ -43,19 +45,14 @@ class JournalAttendanceReport extends Page implements HasTable
                 'teachingSchedule.teacher.user',
                 'teachingSchedule.academicYear',
                 'attendances.student',
+            ])
+            ->withCount([
+                'attendances',
+                'attendances as hadir_count' => fn($q) => $q->where('status', 'hadir'),
+                'attendances as sakit_count' => fn($q) => $q->where('status', 'sakit'),
+                'attendances as izin_count' => fn($q) => $q->where('status', 'izin'),
+                'attendances as alpha_count' => fn($q) => $q->where('status', 'tanpa_keterangan'),
             ]);
-
-        // if ($this->date) {
-        //     $query->whereDate('date', $this->date);
-        // }
-
-        // if ($this->classId) {
-        //     $query->whereHas('teachingSchedule', fn($q) => $q->where('class_id', $this->classId));
-        // }
-
-        // if ($this->teacherId) {
-        //     $query->whereHas('teachingSchedule', fn($q) => $q->where('teacher_id', $this->teacherId));
-        // }
 
         return $query;
     }
@@ -69,8 +66,32 @@ class JournalAttendanceReport extends Page implements HasTable
                     ->date('d M Y')
                     ->sortable(),
 
-                TextColumn::make('teachingSchedule.lessonPeriod.number')
-                    ->label('Jam Ke')
+                TextColumn::make('teachingSchedule.startPeriod.number')
+                    ->label('Jam Mengajar')
+                    ->formatStateUsing(function ($state, $record) {
+
+                        $schedule = $record->teachingSchedule;
+
+                        $startNumber = $schedule?->startPeriod?->number;
+                        $endNumber = $schedule?->endPeriod?->number;
+
+                        $startTime = $schedule?->startPeriod?->start_time;
+                        $endTime = $schedule?->endPeriod?->end_time;
+
+                        if (!$startNumber || !$endNumber || !$startTime || !$endTime) {
+                            return '-';
+                        }
+
+                        $rangeNumber = $startNumber == $endNumber
+                            ? $startNumber
+                            : "{$startNumber}-{$endNumber}";
+
+                        $startFormatted = Carbon::parse($startTime)->format('H.i');
+                        $endFormatted = Carbon::parse($endTime)->format('H.i');
+
+                        return "{$rangeNumber} - ({$startFormatted} - {$endFormatted})";
+                    })
+                    ->searchable()
                     ->sortable(),
 
                 TextColumn::make('teachingSchedule.class.name')
@@ -89,9 +110,19 @@ class JournalAttendanceReport extends Page implements HasTable
                     ->searchable(),
 
                 BadgeColumn::make('attendances_count')
-                    ->label('Jumlah Siswa')
-                    ->counts('attendances')
-                    ->color('success'),
+                    ->label('Absensi')
+                    ->formatStateUsing(function ($state, $record) {
+
+                        return "Total: {$state} | "
+                            . "H: {$record->hadir_count} | "
+                            . "S: {$record->sakit_count} | "
+                            . "I: {$record->izin_count} | "
+                            . "A: {$record->alpha_count}";
+                    })
+                    ->color(
+                        fn($record) =>
+                        $record->alpha_count > 0 ? 'danger' : 'success'
+                    ),
             ])
             ->filters([
                 Filter::make('date')
@@ -128,7 +159,7 @@ class JournalAttendanceReport extends Page implements HasTable
                     ->label('Guru')
                     ->relationship('teachingSchedule.teacher', 'id') // pakai id dulu
                     ->getOptionLabelFromRecordUsing(fn($record) => $record->user->name)
-                    ->visible(fn() => !auth()->user()->hasRole('teacher'))
+                    ->visible(fn() => auth()->user()->hasRole('admin'))
                     ->searchable()
                     ->multiple()
                     ->preload()

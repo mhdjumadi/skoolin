@@ -15,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class StudentResource extends Resource
@@ -61,8 +62,52 @@ class StudentResource extends Resource
         ];
     }
 
+    // public static function getNavigationBadge(): ?string
+    // {
+    //     return static::getModel()::count();
+    // }
+
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::count();
+        $user = auth()->user();
+        $model = static::getModel();
+
+        // Base query
+        $query = $model::query();
+
+        // Guardian → hanya anaknya
+        if ($user->hasRole('guardian')) {
+            $studentIds = $user->guardian->students()->pluck('id');
+            $query->whereHas(
+                'attendances',
+                fn($q) =>
+                $q->whereIn('student_id', $studentIds)
+            );
+        }
+
+        return $query->count();
+    }
+
+
+    public static function getEloquentQuery(): Builder
+    {
+        $user = auth()->user();
+
+        // Base query dengan semua count
+        $query = parent::getEloquentQuery();
+
+        // Jika guardian, tampilkan hanya anaknya
+        if ($user->hasRole('guardian')) {
+            $studentIds = $user->guardian->students()->pluck('id')->toArray();
+
+            return $query->whereHas(
+                'attendances',
+                fn($q) =>
+                $q->whereIn('student_id', $studentIds)
+            );
+        }
+
+        // Default (misal admin), tampilkan semua
+        return $query;
     }
 }

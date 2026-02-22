@@ -2,11 +2,10 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Widgets\DailyLessonSchedule;
-use App\Filament\Widgets\WeeklyStudentAttendance;
-use App\Filament\Widgets\GuardianStatsOverview;
+use App\Filament\Widgets\Guardian\DailyLessonSchedule;
+use App\Filament\Widgets\Guardian\WeeklyStudentAttendance;
+use App\Filament\Widgets\Guardian\GuardianStatsOverview;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
-use Filament\Pages\Dashboard;
 use Filament\Pages\Page;
 use BackedEnum;
 use Filament\Support\Icons\Heroicon;

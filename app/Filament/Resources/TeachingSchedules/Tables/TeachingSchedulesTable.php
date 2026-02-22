@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TeachingSchedules\Tables;
 
+use Auth;
 use Carbon\Carbon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -20,13 +21,29 @@ class TeachingSchedulesTable
                 TextColumn::make('day.name')
                     ->label('Hari')
                     ->searchable(),
-                TextColumn::make('lessonPeriod.number')
+                TextColumn::make('startPeriod.number')
                     ->label('Jam Mengajar')
                     ->formatStateUsing(function ($state, $record) {
-                        $start = Carbon::parse($record->lessonPeriod->start_time)->format('H.i');
-                        $end = Carbon::parse($record->lessonPeriod->end_time)->format('H.i');
+                        $startNumber = $record->startPeriod?->number;
+                        $endNumber = $record->endPeriod?->number;
 
-                        return "{$state} - ({$start} - {$end})";
+                        $startTime = $record->startPeriod?->start_time
+                            ? Carbon::parse($record->startPeriod->start_time)->format('H:i')
+                            : '-';
+                        $endTime = $record->endPeriod?->end_time
+                            ? Carbon::parse($record->endPeriod->end_time)->format('H:i')
+                            : '-';
+
+                        if (!$startNumber || !$endNumber) {
+                            return "- ({$startTime} - {$endTime})";
+                        }
+
+                        // Range nomor jam
+                        $numberRange = $startNumber === $endNumber
+                            ? (string) $startNumber
+                            : "{$startNumber}-{$endNumber}";
+
+                        return "{$numberRange} ({$startTime} - {$endTime})";
                     })
                     ->searchable()
                     ->sortable(),
@@ -76,7 +93,8 @@ class TeachingSchedulesTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->visible(fn() => Auth::user()->hasRole('super_admin')),
                 ]),
             ]);
     }

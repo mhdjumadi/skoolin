@@ -22,8 +22,9 @@ class TeachingSchedule extends Model
         'class_id',
         'teacher_id',
         'subject_id',
-        'lesson_period_id',
         'day_id',
+        'start_period_id',
+        'end_period_id',
     ];
 
     /*
@@ -57,6 +58,16 @@ class TeachingSchedule extends Model
         return $this->belongsTo(LessonPeriod::class);
     }
 
+    public function startPeriod()
+    {
+        return $this->belongsTo(LessonPeriod::class, 'start_period_id');
+    }
+
+    public function endPeriod()
+    {
+        return $this->belongsTo(LessonPeriod::class, 'end_period_id');
+    }
+
     public function day()
     {
         return $this->belongsTo(Day::class);
@@ -69,11 +80,23 @@ class TeachingSchedule extends Model
 
     public function getFullLabelAttribute()
     {
-        return $this->day->name . ' - ' .
-            $this->lessonPeriod->number . ' (' .
-            $this->lessonPeriod->start_time . '-' .
-            $this->lessonPeriod->end_time . ') - ' .
-            $this->subject->name . ' - ' .
-            $this->teacher->user->name;
+        $dayName = $this->day?->name ?? 'Unknown Day';
+        $startNumber = $this->startPeriod?->number;
+        $endNumber = $this->endPeriod?->number;
+        $startTime = $this->startPeriod?->start_time ?? '-';
+        $endTime = $this->endPeriod?->end_time ?? '-';
+        $subjectName = $this->subject?->name ?? 'Unknown Subject';
+        $teacherName = $this->teacher?->user?->name ?? 'Unknown Teacher';
+
+        // Buat range nomor jam
+        if ($startNumber && $endNumber) {
+            $numberRange = $startNumber === $endNumber
+                ? "{$startNumber}"
+                : "{$startNumber}-{$endNumber}";
+        } else {
+            $numberRange = '-';
+        }
+
+        return "{$dayName} - {$numberRange} ({$startTime} - {$endTime}) - {$subjectName} - {$teacherName}";
     }
 }

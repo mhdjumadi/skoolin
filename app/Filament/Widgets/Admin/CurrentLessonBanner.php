@@ -43,28 +43,32 @@ class CurrentLessonBanner extends Widget
         $activeYear = AcademicYear::where('is_active', true)->first();
 
         $user = auth()->user();
+
         $currentLessons = TeachingSchedule::query()
-            ->when(
-                $activeYear,
-                fn($q) => $q->where('academic_year_id', $activeYear->id)
-            )
+            ->when($activeYear, fn($q) => $q->where('academic_year_id', $activeYear->id))
 
             // Hari ini
             ->whereHas('day', fn($q) => $q->where('order', $todayNumber))
 
-            // Jam yang sedang berlangsung
-            ->whereHas('lessonPeriod', function ($q) use ($now) {
+            // Jam yang sedang berlangsung (antara startPeriod & endPeriod)
+            ->whereHas(
+                'startPeriod',
+                fn($q) =>
                 $q->whereTime('start_time', '<=', $now->format('H:i:s'))
-                    ->whereTime('end_time', '>=', $now->format('H:i:s'));
-            })
+            )
+            ->whereHas(
+                'endPeriod',
+                fn($q) =>
+                $q->whereTime('end_time', '>=', $now->format('H:i:s'))
+            )
 
-            // 👇 Jika login sebagai guru, batasi hanya jadwal dia
+            // Jika login sebagai guru, batasi hanya jadwal dia
             ->when(
                 $user->hasRole('teacher') && $user->teacher,
                 fn($q) => $q->where('teacher_id', $user->teacher->id)
             )
 
-            ->with(['lessonPeriod', 'class', 'subject', 'teacher.user'])
+            ->with(['startPeriod', 'endPeriod', 'class', 'subject', 'teacher.user'])
             ->get();
 
         if ($currentLessons->isEmpty()) {
@@ -74,7 +78,7 @@ class CurrentLessonBanner extends Widget
             return;
         }
 
-        // Ambil semua jurnal hari ini sekali query saja (biar tidak query dalam loop)
+        // Ambil semua jurnal hari ini sekaligus
         $journalsToday = TeachingJournal::whereDate('date', $today)
             ->whereIn('teaching_schedule_id', $currentLessons->pluck('id'))
             ->whereNull('end_time')
@@ -83,26 +87,47 @@ class CurrentLessonBanner extends Widget
 
         $texts = [];
 
+        // foreach ($currentLessons as $lesson) {
+        //     $isTeaching = in_array($lesson->id, $journalsToday);
+
+        //     $textStatus = $isTeaching ? 'Sedang Mengajar' : 'Belum Mengajar';
+
+        //     // Optional: gabungkan start & end period
+        //     $timeRange = "{$lesson->startPeriod->start_time} - {$lesson->endPeriod->end_time}";
+
+        //     $texts[] =
+        //         "Kelas {$lesson->class->name} - " .
+        //         "{$lesson->subject->name} - " .
+        //         "{$lesson->teacher->user->name} ({$textStatus}, {$timeRange})";
+        // }
+
         foreach ($currentLessons as $lesson) {
+            $jurnal = TeachingJournal::where('teaching_schedule_id', $lesson->id)
+                ->whereDate('date', $today)
+                ->first();
 
-            $isTeaching = in_array($lesson->id, $journalsToday);
+            if (!$jurnal) {
+                $textStatus = 'Belum Mengajar';
+            } elseif (!$jurnal->end_time) {
+                $textStatus = 'Sedang Mengajar';
+            } else {
+                $textStatus = 'Selesai';
+            }
 
-            $textStatus = $isTeaching
-                ? 'Sedang Mengajar'
-                : 'Belum Mengajar';
+            $startTime = $lesson->startPeriod?->start_time ?? '-';
+            $endTime = $lesson->endPeriod?->end_time ?? '-';
+            $timeRange = "{$startTime} - {$endTime}";
 
             $texts[] =
                 "Kelas {$lesson->class->name} - " .
                 "{$lesson->subject->name} - " .
-                "{$lesson->teacher->user->name} ({$textStatus})";
+                "{$lesson->teacher->user->name} ({$textStatus}, {$timeRange})";
         }
 
         $this->currentLessonText = implode(' | ', $texts);
 
         // Jika ada minimal 1 yang sedang mengajar → status global = sedang
-        $this->currentLessonStatus = count($journalsToday) > 0
-            ? 'sedang'
-            : 'belum';
+        $this->currentLessonStatus = count($journalsToday) > 0 ? 'sedang' : 'belum';
 
         $this->currentTime = $now->format('H:i:s');
     }

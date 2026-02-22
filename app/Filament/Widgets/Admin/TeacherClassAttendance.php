@@ -35,8 +35,21 @@ class TeacherClassAttendance extends TableWidget
         return $table
             ->query(fn(): Builder => $this->getSchedulesQuery())
             ->columns([
-                TextColumn::make('lessonPeriod.number')
+                TextColumn::make('startPeriod.number')
                     ->label('Jam Ke')
+                    ->formatStateUsing(function ($state, $record) {
+                        $startNumber = $record->startPeriod?->number;
+                        $endNumber = $record->endPeriod?->number;
+
+                        if (!$startNumber || !$endNumber) {
+                            return '-';
+                        }
+
+                        // Jika start=end, tampilkan satu nomor, kalau beda tampilkan range
+                        return $startNumber === $endNumber
+                            ? (string)$startNumber
+                            : "{$startNumber}-{$endNumber}";
+                    })
                     ->sortable(),
 
                 TextColumn::make('class.name')
@@ -47,18 +60,18 @@ class TeacherClassAttendance extends TableWidget
                     ->label('Status Mengajar')
                     ->getStateUsing(function ($record) use ($journalsToday) {
                         if (!isset($journalsToday[$record->id])) {
-                            return 'Tidak Ada Jurnal';
+                            return 'Tidak ada guru';
                         }
 
                         return $journalsToday[$record->id]->end_time
                             ? 'Selesai'
-                            : 'Sedang Mengajar';
+                            : 'Sedang mengajar';
                     })
                     ->badge()
                     ->color(function ($state) {
                         return match ($state) {
                             'Selesai' => 'success',
-                            'Sedang Mengajar' => 'warning',
+                            'Sedang mengajar' => 'warning',
                             default => 'danger',
                         };
                     }),

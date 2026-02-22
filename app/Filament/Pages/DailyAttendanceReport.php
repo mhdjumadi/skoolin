@@ -27,6 +27,7 @@ class DailyAttendanceReport extends Page implements HasTable
     protected string $view = 'filament.pages.daily-attendance-report';
 
     protected static ?string $navigationLabel = 'Presensi Harian';
+    protected static ?string $title = 'Presensi Harian';
     protected static ?string $modelLabel = 'Presensi Harian';
     protected static ?string $pluralModelLabel = 'Presensi Harian';
 
@@ -36,8 +37,25 @@ class DailyAttendanceReport extends Page implements HasTable
     public ?array $classId = null; // property untuk filter kelas
 
 
+    // protected function getTableQuery()
+    // {
+    //     $query = Student::query()
+    //         ->with('attendances.class')
+    //         ->withCount([
+    //             'attendances as hadir_count' => fn($q) => $q->where('status', 'hadir'),
+    //             'attendances as izin_count' => fn($q) => $q->where('status', 'izin'),
+    //             'attendances as sakit_count' => fn($q) => $q->where('status', 'sakit'),
+    //             'attendances as dispensasi_count' => fn($q) => $q->where('status', 'dispensasi'),
+    //         ])
+    //         ->where('students.is_active', true);
+
+    //     return $query;
+    // }
+
     protected function getTableQuery()
     {
+        $user = auth()->user();
+
         $query = Student::query()
             ->with('attendances.class')
             ->withCount([
@@ -47,6 +65,12 @@ class DailyAttendanceReport extends Page implements HasTable
                 'attendances as dispensasi_count' => fn($q) => $q->where('status', 'dispensasi'),
             ])
             ->where('students.is_active', true);
+
+        // Jika user guardian, filter hanya anaknya
+        if ($user->hasRole('guardian')) {
+            $studentIds = $user->guardian->students()->pluck('id')->toArray();
+            $query->whereIn('students.id', $studentIds);
+        }
 
         return $query;
     }
@@ -117,7 +141,7 @@ class DailyAttendanceReport extends Page implements HasTable
             ->defaultSort('name');
     }
 
-    protected function getTableHeaderActions(): array
+    protected function getHeaderActions(): array
     {
         return [
             ExportAction::make()

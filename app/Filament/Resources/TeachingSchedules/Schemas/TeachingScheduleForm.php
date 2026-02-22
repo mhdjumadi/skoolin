@@ -8,6 +8,8 @@ use App\Models\Day;
 use App\Models\LessonPeriod;
 use App\Models\Subject;
 use App\Models\Teacher;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -40,8 +42,8 @@ class TeachingScheduleForm
                             ->options(Subject::all()->pluck('name', 'id')->toArray())
                             ->required(),
 
-                        Select::make('lesson_period_id')
-                            ->label('Jam Mengajar')
+                        Select::make('start_period_id')
+                            ->label('Jam Mulai Mengajar')
                             ->options(
                                 LessonPeriod::all()->mapWithKeys(function ($p) {
                                     return [
@@ -51,11 +53,34 @@ class TeachingScheduleForm
                             )
                             ->required(),
 
-
-                        Select::make('day_id')
-                            ->label('Hari')
-                            ->options(Day::orderBy('number')->pluck('name', 'id')->toArray())
+                        Select::make('end_period_id')
+                            ->label('Jam Berakhir Mengajar')
+                            ->options(
+                                LessonPeriod::all()->mapWithKeys(function ($p) {
+                                    return [
+                                        $p->id => $p->period_number . $p->number . ' (' . $p->start_time . '-' . $p->end_time . ')'
+                                    ];
+                                })->toArray()
+                            )
                             ->required(),
+
+                        Radio::make('day_id')
+                            ->label('Hari')
+                            ->options(
+                                Day::all()->mapWithKeys(function ($p) {
+                                    return [
+                                        $p->id => $p->name
+                                    ];
+                                })->toArray()
+                            )
+                            ->columns(2)
+                            ->required(),
+
+
+                        // Select::make('day_id')
+                        //     ->label('Hari')
+                        //     ->options(Day::orderBy('number')->pluck('name', 'id')->toArray())
+                        //     ->required(),
                     ])
                     ->columns('2')
                     ->columnSpanFull()

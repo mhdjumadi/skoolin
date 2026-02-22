@@ -59,4 +59,9 @@ class AttendanceDeviceResource extends Resource
             'edit' => EditAttendanceDevice::route('/{record}/edit'),
         ];
     }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
 }

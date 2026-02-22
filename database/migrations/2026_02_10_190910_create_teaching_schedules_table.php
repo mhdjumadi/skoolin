@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -14,30 +13,48 @@ return new class extends Migration
         Schema::create('teaching_schedules', function (Blueprint $table) {
             $table->uuid('id')->primary();
 
-            $table->uuid('academic_year_id');
-            $table->uuid('class_id');
-            $table->uuid('teacher_id');
-            $table->uuid('subject_id');
-            $table->uuid('lesson_period_id');
-            $table->uuid('day_id');
+            $table->foreignUuid('academic_year_id')
+                ->constrained('academic_years')
+                ->cascadeOnDelete();
+
+            $table->foreignUuid('class_id')
+                ->constrained('classes')
+                ->cascadeOnDelete();
+
+            $table->foreignUuid('teacher_id')
+                ->constrained('teachers')
+                ->cascadeOnDelete();
+
+            $table->foreignUuid('subject_id')
+                ->constrained('subjects')
+                ->cascadeOnDelete();
+
+            $table->foreignUuid('day_id')
+                ->constrained('days')
+                ->cascadeOnDelete();
+
+            // NEW: range period
+            $table->foreignUuid('start_period_id')
+                ->constrained('lesson_periods')
+                ->cascadeOnDelete();
+
+            $table->foreignUuid('end_period_id')
+                ->constrained('lesson_periods')
+                ->cascadeOnDelete();
 
             $table->timestamps();
 
-            // Foreign Keys
-            $table->foreign('academic_year_id')->references('id')->on('academic_years')->cascadeOnDelete();;
-            $table->foreign('class_id')->references('id')->on('classes')->cascadeOnDelete();;
-            $table->foreign('teacher_id')->references('id')->on('teachers')->cascadeOnDelete();;
-            $table->foreign('subject_id')->references('id')->on('subjects')->cascadeOnDelete();;
-            $table->foreign('lesson_period_id')->references('id')->on('lesson_periods')->cascadeOnDelete();;
-            $table->foreign('day_id')->references('id')->on('days')->cascadeOnDelete();;
+            // Prevent duplicate exact same range for same class
+            $table->unique(
+                ['academic_year_id', 'class_id', 'day_id', 'start_period_id', 'end_period_id'],
+                'unique_class_schedule_range'
+            );
 
-            // Prevent duplicate schedules
-            $table->unique([
-                'academic_year_id',
-                'class_id',
-                'day_id',
-                'lesson_period_id'
-            ], 'unique_class_schedule');
+            // Prevent teacher double booking with same range
+            $table->unique(
+                ['academic_year_id', 'teacher_id', 'day_id', 'start_period_id', 'end_period_id'],
+                'unique_teacher_schedule_range'
+            );
         });
     }
 

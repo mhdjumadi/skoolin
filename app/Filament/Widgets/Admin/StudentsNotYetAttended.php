@@ -36,9 +36,11 @@ class StudentsNotYetAttended extends TableWidget
             )
             ->columns([
                 TextColumn::make('nisn')
-                    ->label('NISN'),
+                    ->label('NISN')
+                    ->sortable(),
                 TextColumn::make('name')
-                    ->label('Nama Siswa'),
+                    ->label('Nama Siswa')
+                    ->sortable(),
                 TextColumn::make('classes.name')
                     ->label('Kelas')
                     ->sortable(),

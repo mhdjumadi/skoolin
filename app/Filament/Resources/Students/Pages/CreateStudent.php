@@ -14,8 +14,6 @@ class CreateStudent extends CreateRecord
     {
         $data['password'] = Hash::make($data['nisn']);
 
-        dd($data);
-
         return $data;
     }
 }

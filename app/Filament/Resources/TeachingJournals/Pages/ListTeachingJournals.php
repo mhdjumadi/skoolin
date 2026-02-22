@@ -8,6 +8,7 @@ use App\Models\Classes;
 use App\Models\JournalAttendance;
 use App\Models\TeachingJournal;
 use App\Models\TeachingSchedule;
+use Auth;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
@@ -77,11 +78,20 @@ class ListTeachingJournals extends ListRecords
         $schedules = TeachingSchedule::where('class_id', $kelas->id)
             ->where('teacher_id', $teacher->id)
             ->whereHas('day', fn($q) => $q->where('order', $todayNumber))
-            ->with('lessonPeriod')
+            ->with('startPeriod', 'endPeriod')
             ->get();
 
-        $now = now()->format('H:i:s');
-        $currentSchedule = $schedules->first(fn($s) => $now >= $s->lessonPeriod->start_time && $now <= $s->lessonPeriod->end_time);
+        $now = now();
+        $currentSchedule = $schedules->first(function ($s) use ($now) {
+            if (!$s->startPeriod || !$s->endPeriod) {
+                return false;
+            }
+
+            $start = Carbon::parse($s->startPeriod->start_time);
+            $end = Carbon::parse($s->endPeriod->end_time);
+
+            return $now->between($start, $end);
+        });
 
         if (!$currentSchedule) {
             return Action::make('info')
@@ -99,16 +109,16 @@ class ListTeachingJournals extends ListRecords
             ->whereDate('date', now())
             ->first();
 
-
-
         if ($this->jurnal) {
-            if (!$this->jurnal->end_time) {
-                $now = Carbon::now();
-                $scheduleEnd = Carbon::parse($currentSchedule->lessonPeriod->end_time);
 
-                // Hitung selisih menit
+            if (!$this->jurnal->end_time) {
+
+                if (!$currentSchedule->endPeriod) {
+                    return null; // safety guard kalau relasi tidak ada
+                }
+
                 $now = now();
-                $scheduleEnd = Carbon::parse($currentSchedule->lessonPeriod->end_time);
+                $scheduleEnd = Carbon::parse($currentSchedule->endPeriod->end_time);
 
                 $diffSeconds = $now->diffInSeconds($scheduleEnd, false);
                 $absSeconds = abs($diffSeconds);
@@ -116,7 +126,7 @@ class ListTeachingJournals extends ListRecords
                 $hours = intdiv($absSeconds, 3600);
                 $minutes = intdiv($absSeconds % 3600, 60);
 
-                // Format waktu yang enak dibaca
+                // Format waktu
                 if ($absSeconds < 60) {
                     $timeText = 'kurang dari 1 menit';
                 } elseif ($hours > 0) {
@@ -125,7 +135,7 @@ class ListTeachingJournals extends ListRecords
                     $timeText = $minutes . ' menit';
                 }
 
-                // Tentukan status
+                // Tentukan status waktu
                 if ($diffSeconds < 0) {
                     $message = "Jam pelajaran sudah lewat <strong>{$timeText}</strong>.";
                     $color = "text-red-600";
@@ -149,7 +159,7 @@ class ListTeachingJournals extends ListRecords
                     ))
                     ->action(function () {
                         $this->jurnal->update([
-                            'end_time' => now(),
+                            'end_time' => now()->format('H:i:s'),
                         ]);
                     });
             }
@@ -163,31 +173,6 @@ class ListTeachingJournals extends ListRecords
                 ));
         }
 
-        // if ($this->jurnal) {
-        //     if (!$this->jurnal->end_time) {
-        //         // Update end_time jika belum ada
-        //         $this->jurnal->update([
-        //             'end_time' => now()->format('H:i:s'),
-        //         ]);
-
-        //         return Action::make('info')
-        //             ->label('Info')
-        //             ->modalHeading('Terima Kasih')
-        //             ->modalSubmitAction(false)
-        //             ->modalContent(fn() => new HtmlString(
-        //                 "<p class='text-sm text-gray-700'>Sesi mengajar telah selesai.</p>"
-        //             ));
-        //     }
-
-        //     return Action::make('info')
-        //         ->label('Info')
-        //         ->modalHeading('Jurnal Sudah Dibuat')
-        //         ->modalSubmitAction(false)
-        //         ->modalContent(fn() => new HtmlString(
-        //             "<p class='text-sm text-gray-700'>Jurnal untuk sesi ini sudah dibuat sebelumnya.</p>"
-        //         ));
-        // }
-
         // --- 4. Jika belum ada, tampilkan form untuk create jurnal ---
         return Action::make('checkin')
             ->label('Mulai Sekarang')
@@ -196,40 +181,45 @@ class ListTeachingJournals extends ListRecords
                 Select::make('teaching_schedule_id')
                     ->label('Jadwal Mengajar')
                     ->options(
-                        TeachingSchedule::with(['day', 'lessonPeriod', 'subject', 'teacher'])
+                        TeachingSchedule::with([
+                            'day',
+                            'startPeriod',
+                            'endPeriod',
+                            'subject',
+                            'teacher.user'
+                        ])
                             ->get()
                             ->pluck('full_label', 'id')
                             ->toArray()
                     )
                     ->searchable()
                     ->required()
-                    ->default($currentSchedule->id),
+                    ->default($currentSchedule?->id),
 
                 DatePicker::make('date')
                     ->label('Tanggal')
                     ->required()
+                    ->readOnly(fn() => Auth::user()->hasRole('teacher'))
                     ->default(now()),
 
                 TimePicker::make('start_time')
                     ->label('Mulai')
                     ->required()
-                    ->default(now()),
+                    ->readOnly(fn() => Auth::user()->hasRole('teacher'))
+                    ->default(fn () => now()->format('H:i:s')),
 
                 TimePicker::make('end_time')
-                    ->label('Selesai'),
+                    ->label('Selesai')
+                    ->readOnly(fn() => Auth::user()->hasRole('teacher')),
 
-                Textarea::make('material')
-                    ->label('Materi'),
-                Textarea::make('activities')
-                    ->label('Kegiatan'),
-                Textarea::make('assessment')
-                    ->label('Penilaian'),
-                Textarea::make('notes')
-                    ->label('Catatan'),
+                Textarea::make('material')->label('Materi'),
+                Textarea::make('activities')->label('Kegiatan'),
+                Textarea::make('assessment')->label('Penilaian'),
+                Textarea::make('notes')->label('Catatan'),
             ])
             ->action(function (array $data) use ($kelas) {
 
-                // --- 5. Buat jurnal baru ---
+                // 5️⃣ Buat jurnal baru
                 $this->jurnal = TeachingJournal::create([
                     'teaching_schedule_id' => $data['teaching_schedule_id'],
                     'date' => $data['date'],
@@ -241,27 +231,27 @@ class ListTeachingJournals extends ListRecords
                     'notes' => $data['notes'] ?? null,
                 ]);
 
-
-                // --- 6. Insert attendance siswa ---
-                $students = $kelas->students;
-                foreach ($students as $student) {
+                // 6️⃣ Insert attendance siswa
+                foreach ($kelas->students as $student) {
                     JournalAttendance::create([
                         'teaching_journal_id' => $this->jurnal->id,
                         'student_id' => $student->id,
-                        'status' => 'hadir', // default hadir 
+                        'status' => 'hadir',
                         'notes' => null,
                     ]);
                 }
 
-                // --- 7. Notifikasi sukses ---
+                // 7️⃣ Notifikasi sukses
                 Notification::make()
                     ->title('Jurnal berhasil disimpan')
                     ->success()
                     ->send();
 
-                // --- 8. Redirect ke halaman view jurnal ---
+                // 8️⃣ Redirect ke halaman view jurnal
                 return redirect()->to(
-                    TeachingJournalResource::getUrl('view', ['record' => $this->jurnal->getKey()])
+                    TeachingJournalResource::getUrl('view', [
+                        'record' => $this->jurnal->getKey()
+                    ])
                 );
             });
     }

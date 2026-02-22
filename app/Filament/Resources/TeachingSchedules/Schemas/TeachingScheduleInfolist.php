@@ -39,20 +39,32 @@ class TeachingScheduleInfolist
                             ->color('warning')
                             ->icon('heroicon-o-book-open'),
 
-                        TextEntry::make('lessonPeriod.number')
+                        TextEntry::make('startPeriod.number')
                             ->label('Jam Mengajar')
                             ->badge()
                             ->color('primary')
                             ->icon('heroicon-o-clock')
                             ->formatStateUsing(function ($state, $record) {
-                                if (!$record->lessonPeriod?->start_time || !$record->lessonPeriod?->end_time) {
-                                    return "Jam {$state}";
+                                $startNumber = $record->startPeriod?->number;
+                                $endNumber = $record->endPeriod?->number;
+
+                                $startTime = $record->startPeriod?->start_time
+                                    ? \Carbon\Carbon::parse($record->startPeriod->start_time)->format('H:i')
+                                    : '-';
+                                $endTime = $record->endPeriod?->end_time
+                                    ? \Carbon\Carbon::parse($record->endPeriod->end_time)->format('H:i')
+                                    : '-';
+
+                                if (!$startNumber || !$endNumber) {
+                                    return "- ({$startTime} - {$endTime})";
                                 }
 
-                                $start = \Carbon\Carbon::parse($record->lessonPeriod->start_time)->format('H:i');
-                                $end = \Carbon\Carbon::parse($record->lessonPeriod->end_time)->format('H:i');
+                                // Buat range nomor jam: kalau start=end, tampilkan satu angka; kalau beda, tampilkan start-end
+                                $numberRange = $startNumber === $endNumber
+                                    ? "{$startNumber}"
+                                    : "{$startNumber}-{$endNumber}";
 
-                                return "{$state} ({$start} - {$end})";
+                                return "{$numberRange} ({$startTime} - {$endTime})";
                             }),
 
                         TextEntry::make('day.name')

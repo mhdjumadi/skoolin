@@ -5,6 +5,7 @@ namespace App\Filament\Resources\TeachingJournals\Tables;
 use App\Models\Classes;
 use App\Models\Subject;
 use App\Models\Teacher;
+use Auth;
 use Carbon\Carbon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -30,16 +31,30 @@ class TeachingJournalsTable
                             Carbon::parse($state)->translatedFormat('d M Y');
                     })
                     ->sortable(),
-                TextColumn::make('teachingSchedule.lessonPeriod.number')
-                    ->label('Jam ke')
-                    ->searchable(),
-                TextColumn::make('teachingSchedule.lessonPeriod.number')
+                TextColumn::make('teachingSchedule.startPeriod.number')
                     ->label('Jam Mengajar')
                     ->formatStateUsing(function ($state, $record) {
-                        $start = Carbon::parse($record->teachingSchedule->lessonPeriod->start_time)->format('H.i');
-                        $end = Carbon::parse($record->teachingSchedule->lessonPeriod->end_time)->format('H.i');
 
-                        return "{$state} - ({$start} - {$end})";
+                        $schedule = $record->teachingSchedule;
+
+                        $startNumber = $schedule?->startPeriod?->number;
+                        $endNumber = $schedule?->endPeriod?->number;
+
+                        $startTime = $schedule?->startPeriod?->start_time;
+                        $endTime = $schedule?->endPeriod?->end_time;
+
+                        if (!$startNumber || !$endNumber || !$startTime || !$endTime) {
+                            return '-';
+                        }
+
+                        $rangeNumber = $startNumber == $endNumber
+                            ? $startNumber
+                            : "{$startNumber}-{$endNumber}";
+
+                        $startFormatted = Carbon::parse($startTime)->format('H.i');
+                        $endFormatted = Carbon::parse($endTime)->format('H.i');
+
+                        return "{$rangeNumber} - ({$startFormatted} - {$endFormatted})";
                     })
                     ->searchable()
                     ->sortable(),
@@ -105,7 +120,8 @@ class TeachingJournalsTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->visible(fn() => Auth::user()->hasRole('super_admin')),
                 ]),
             ]);
     }

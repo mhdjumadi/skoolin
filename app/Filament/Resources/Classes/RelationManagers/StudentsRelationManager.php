@@ -30,7 +30,11 @@ class StudentsRelationManager extends RelationManager
     {
         return $table
             ->columns([
+                TextColumn::make('nisn')
+                    ->label('NISN')
+                    ->searchable(),
                 TextColumn::make('name')
+                    ->label('Nama')
                     ->searchable(),
                 TextColumn::make('pivot.academicYear.name')
                     ->label('Tahun akademik')

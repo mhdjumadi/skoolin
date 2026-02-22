@@ -28,8 +28,23 @@ class TeachingJournalInfolist
                                     ->label('Tanggal')
                                     ->date(),
 
-                                TextEntry::make('teachingSchedule.lessonPeriod.number')
-                                    ->label('Jam Ke'),
+                                TextEntry::make('teachingSchedule.startPeriod.number')
+                                    ->label('Jam Ke')
+                                    ->formatStateUsing(function ($state, $record) {
+
+                                        $schedule = $record->teachingSchedule;
+
+                                        $start = $schedule?->startPeriod?->number;
+                                        $end = $schedule?->endPeriod?->number;
+
+                                        if (!$start || !$end) {
+                                            return '-';
+                                        }
+
+                                        return $start == $end
+                                            ? (string) $start
+                                            : "{$start}-{$end}";
+                                    }),
 
                                 TextEntry::make('teachingSchedule.subject.name')
                                     ->label('Mata Pelajaran'),
