@@ -19,7 +19,6 @@ class ListRfidMasters extends ListRecords
             ->label('Kartu baru'),
             ExportAction::make()
                 ->label('Export RFID master')
-                ->color('warning')
                 ->exporter(RfidMasterExporter::class),
         ];
     }
