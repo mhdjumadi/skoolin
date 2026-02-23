@@ -29,7 +29,7 @@ class CurrentLessonBanner extends Widget
 
     public function updateTime()
     {
-        $this->currentTime = now()->format('H:i:s');
+        $this->currentTime = now()->locale('id') ->format('H:i:s');
 
         $this->updateCurrentLesson();
     }
@@ -74,7 +74,7 @@ class CurrentLessonBanner extends Widget
         if ($currentLessons->isEmpty()) {
             $this->currentLessonText = "Tidak ada pelajaran pada jam ini!";
             $this->currentLessonStatus = 'belum';
-            $this->currentTime = $now->format('H:i:s');
+            $this->currentTime = $now->locale('id') ->format('H:i:s');
             return;
         }
 
@@ -129,7 +129,7 @@ class CurrentLessonBanner extends Widget
         // Jika ada minimal 1 yang sedang mengajar → status global = sedang
         $this->currentLessonStatus = count($journalsToday) > 0 ? 'sedang' : 'belum';
 
-        $this->currentTime = $now->format('H:i:s');
+        $this->currentTime = $now->locale('id') ->format('H:i:s');
     }
 
     public function getListeners(): array

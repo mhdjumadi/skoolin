@@ -4,16 +4,17 @@
                 time: '{{ $currentTime }}', 
                 text: '{{ $currentLessonText }}', 
                 status: '{{ $currentLessonStatus }}', 
-                date: '{{ now()->format('l, d F Y') }}' 
-            }" x-init="setInterval(() => { @this.call('updateTime'); }, 1000)">
-            <!-- Tanggal & Hari -->
-
+                {{-- GUNAKAN translatedFormat UNTUK BAHASA INDONESIA --}}
+                date: '{{ now()->locale('id')->translatedFormat('l, d F Y') }}' 
+            }" {{-- Pantau perubahan dari Livewire dan update variabel Alpine --}} x-init="
+                setInterval(() => { @this.call('updateTime'); }, 1000);
+                $watch('$wire.currentTime', value => { time = value });
+            ">
+        
             <div class="text-lg mb-2" x-text="date"></div>
-
-            <!-- Jam sekarang -->
+        
             <div class="text-3xl font-bold mb-1" x-text="time"></div>
-
-            <!-- Info pelajaran dengan marquee jika panjang -->
+        
             <div class="overflow-hidden whitespace-nowrap mt-4">
                 <div class="inline-block animate-marquee uppercase" x-text="text"></div>
             </div>
