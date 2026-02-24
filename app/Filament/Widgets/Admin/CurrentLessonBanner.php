@@ -87,20 +87,6 @@ class CurrentLessonBanner extends Widget
 
         $texts = [];
 
-        // foreach ($currentLessons as $lesson) {
-        //     $isTeaching = in_array($lesson->id, $journalsToday);
-
-        //     $textStatus = $isTeaching ? 'Sedang Mengajar' : 'Belum Mengajar';
-
-        //     // Optional: gabungkan start & end period
-        //     $timeRange = "{$lesson->startPeriod->start_time} - {$lesson->endPeriod->end_time}";
-
-        //     $texts[] =
-        //         "Kelas {$lesson->class->name} - " .
-        //         "{$lesson->subject->name} - " .
-        //         "{$lesson->teacher->user->name} ({$textStatus}, {$timeRange})";
-        // }
-
         foreach ($currentLessons as $lesson) {
             $jurnal = TeachingJournal::where('teaching_schedule_id', $lesson->id)
                 ->whereDate('date', $today)

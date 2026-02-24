@@ -2,9 +2,14 @@
 
 use Livewire\Component;
 use Carbon\Carbon;
+use App\Models\AcademicYear;
+use App\Models\TeachingSchedule;
+use App\Models\Student;
+use App\Models\StudentAttendance;
 
 new class extends Component {
     public $now;
+    public $jadwalHariIni = [];
     public $jadwalSekarang = [];
     public $jadwalBerikutnya = [];
     public $siswaBelumPresensi = [];
@@ -20,44 +25,135 @@ new class extends Component {
     // Fungsi ini dipanggil oleh wire:poll setiap 5 detik
     public function loadData()
     {
-        $this->now = Carbon::now();
+        $this->now = now();
+        $todayDate = $this->now->toDateString();
+        $todayNumber = $this->now->dayOfWeekIso;
 
-        // Di sini nantinya kamu ganti dengan query database asli
-        // Contoh: $this->jadwalSekarang = Jadwal::where('jam_mulai', '<=', now())...
+        // 1. Cari Tahun Ajaran Aktif
+        $activeYear = AcademicYear::where('is_active', true)->first();
 
-        $this->loadDummy();
-    }
+        if (!$activeYear) {
+            return;
+        }
 
-    public function loadDummy()
-    {
-        // ... (isi data dummy kamu yang sudah ada)
-        $this->jadwalSekarang = [
-            ['kelas' => 'X IPA 1', 'mapel' => 'Matematika', 'guru' => 'Budi Santoso, S.Pd', 'jam' => '07:00 - 08:30'],
-            ['kelas' => 'XI IPS 2', 'mapel' => 'Bahasa Indonesia', 'guru' => 'Siti Aminah, S.Pd', 'jam' => '07:00 - 08:30'],
-            ['kelas' => 'XII TKJ 1', 'mapel' => 'Pemrograman Web', 'guru' => 'Eko Prasetyo, M.Kom', 'jam' => '07:00 - 08:30'],
-            // Tambahkan data lebih banyak untuk testing carousel
-        ];
+        // 2. Query Dasar (Base Query) untuk efisiensi
+        $baseQuery = TeachingSchedule::query()
+            ->where('academic_year_id', $activeYear->id)
+            ->whereHas('day', fn($q) => $q->where('order', $todayNumber))
+            ->with(['startPeriod', 'endPeriod', 'class', 'subject', 'teacher.user']);
 
-        $this->absensiHariIni = [
-            'total' => 320,
-            'hadir' => rand(290, 300), // Kita buat sedikit random agar terlihat "real-time" saat testing
-            'izin' => 10,
-            'sakit' => 7,
-            'alpha' => 5
-        ];
+        // 4. AMBIL JADWAL YANG SEDANG BERLANGSUNG (Jadwal Sekarang)
+        $currentLesson = (clone $baseQuery)
+            ->whereHas('startPeriod', fn($q) => $q->whereTime('start_time', '<=', $this->now))
+            ->whereHas('endPeriod', fn($q) => $q->whereTime('end_time', '>=', $this->now))
+            ->get();
 
-        $this->siswaBelumPresensi = [
-            ['nama' => 'Andi Pratama', 'kelas' => 'XA'],
-            ['nama' => 'Budi Sudarsono', 'kelas' => 'XB'],
-            ['nama' => 'Citra Lestari', 'kelas' => 'XIA'],
-            ['nama' => 'Dedi Cahyadi', 'kelas' => 'XIIA'],
-            ['nama' => 'Eka Wijaya', 'kelas' => 'XIB'],
-        ];
+        $this->jadwalSekarang = $currentLesson->map(function ($item) {
+            return [
+                'kelas' => $item->class?->name ?? '-', // Sesuaikan 'name' dengan kolom di tabel classes
+                'mapel' => $item->subject?->name ?? '-', // Sesuaikan 'name' dengan kolom di tabel subjects
+                'guru' => $item->teacher?->user?->name ?? '-', // Mengambil nama dari relasi user
+                'jam' => ($item->startPeriod?->start_time ?? '') . ' - ' . ($item->endPeriod?->end_time ?? ''),
+            ];
+        })->toArray();
 
-        $this->guruBelumMasuk = [
-            ['nama' => 'Budi Santoso, S.Pd', 'kelas' => 'X IPA 1', 'mapel' => 'TIK'],
-            ['nama' => 'Siti Aminah, S.Pd', 'kelas' => 'XI IPS 2', 'mapel' => 'MATEMATIKA'],
-        ];
+        $this->jadwalHariIni = (clone $baseQuery)->get()->map(function ($item) {
+            return [
+                'kelas' => $item->class?->name ?? '-', // Sesuaikan 'name' dengan kolom di tabel classes
+                'mapel' => $item->subject?->name ?? '-', // Sesuaikan 'name' dengan kolom di tabel subjects
+                'guru' => $item->teacher?->user?->name ?? '-', // Mengambil nama dari relasi user
+                'jam' => ($item->startPeriod?->start_time ?? '') . ' - ' . ($item->endPeriod?->end_time ?? ''),
+            ];
+        })->toArray();
+
+        $this->guruBelumMasuk = (clone $baseQuery)
+            // 1. Filter Jadwal yang sedang berlangsung (sama seperti jadwalSekarang)
+            ->whereHas('startPeriod', fn($q) => $q->whereTime('start_time', '<=', $this->now))
+            ->whereHas('endPeriod', fn($q) => $q->whereTime('end_time', '>=', $this->now))
+
+            // 2. Filter: Ambil yang TIDAK PUNYA jurnal untuk hari ini
+            ->whereDoesntHave('journals', function ($query) use ($todayDate) {
+                $query->whereDate('date', $todayDate);
+                // pastikan nama kolom 'date' sesuai dengan di tabel teaching_journals Anda
+            })
+
+            ->with(['class', 'subject', 'teacher.user'])
+            ->get()
+            // 3. Mapping agar formatnya rapi untuk dashboard
+            ->map(function ($item) {
+                return [
+                    'kelas' => $item->class->name ?? '-',
+                    'mapel' => $item->subject->name ?? '-',
+                    'nama' => $item->teacher->user->name ?? '-',
+                    'foto' => $item->teacher->user->profile_photo_url ?? null, // Opsional untuk UI
+                ];
+            })->toArray();
+
+        // 1. Ambil ID Tahun Ajaran Aktif
+        $activeYear = AcademicYear::where('is_active', true)->first();
+
+        if ($activeYear) {
+            $this->siswaBelumPresensi = Student::query()
+                // 2. Filter siswa yang terdaftar di kelas pada tahun ajaran aktif (melalui pivot student_classes)
+                ->whereHas('studentClasses', function ($q) use ($activeYear) {
+                    $q->where('academic_year_id', $activeYear->id);
+                })
+
+                // 3. Filter: Siswa yang TIDAK PUNYA data absensi untuk HARI INI
+                ->whereDoesntHave('attendances', function ($q) use ($todayDate) {
+                    $q->whereDate('date', $todayDate); // Sesuaikan 'attendance_date' dengan kolom tabel Anda
+                })
+
+                // 4. Eager Loading untuk mengambil nama kelas dari pivot/relasi
+                ->with([
+                    'studentClasses' => function ($q) use ($activeYear) {
+                        $q->where('academic_year_id', $activeYear->id)->with('class');
+                    }
+                ])
+                ->get()
+
+                // 5. Mapping ke format array yang Anda inginkan
+                ->map(function ($student) use ($activeYear) {
+                    // Mengambil nama kelas dari relasi studentClasses yang aktif
+                    $currentClass = $student->studentClasses->first()?->class?->name ?? '-';
+
+                    return [
+                        'nama' => $student->name, // Sesuaikan kolom nama di tabel siswa
+                        'kelas' => $currentClass,
+                    ];
+                })
+                ->toArray();
+        }
+
+        if ($activeYear) {
+            // 1. Hitung total siswa yang seharusnya hadir di tahun ajaran ini
+            $totalSiswa = Student::whereHas('studentClasses', function ($q) use ($activeYear) {
+                $q->where('academic_year_id', $activeYear->id);
+            })->count();
+
+            // 2. Ambil data absensi hari ini yang sudah masuk ke database
+            $attendanceStats = StudentAttendance::whereDate('attendance_date', $todayDate)
+                ->selectRaw('status, count(*) as count')
+                ->groupBy('status')
+                ->pluck('count', 'status');
+
+            // 3. Hitung jumlah siswa yang sudah absen (Hadir + Izin + Sakit)
+            $sudahAbsen = $attendanceStats->get('hadir', 0)
+                + $attendanceStats->get('izin', 0)
+                + $attendanceStats->get('sakit', 0);
+
+            // 4. Alpha adalah selisihnya
+            // Pakai max(0, ...) untuk menghindari angka negatif jika ada data ganda
+            $hitungAlpha = max(0, $totalSiswa - $sudahAbsen);
+
+            $this->absensiHariIni = [
+                'total' => $totalSiswa,
+                'hadir' => $attendanceStats->get('hadir', 0),
+                'izin' => $attendanceStats->get('izin', 0),
+                'sakit' => $attendanceStats->get('sakit', 0),
+                'alpha' => $hitungAlpha,
+            ];
+        }
     }
 };
 ?>
@@ -74,7 +170,7 @@ new class extends Component {
         <div class="flex items-center gap-5 relative z-10">
             {{-- Logo Placeholder / Icon Sekolah --}}
             <div
-                class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-700 rounded-xl flex items-center justify-center shadow-lg shadow-green-900/20 group-hover:rotate-3 transition-transform duration-500">
+                class="w-16 h-16 bg-linier-to-br from-green-500 to-green-700 rounded-xl flex items-center justify-center shadow-lg shadow-green-900/20 group-hover:rotate-3 transition-transform duration-500">
                 <span class="text-3xl font-black text-white">H</span>
             </div>
     
@@ -149,15 +245,12 @@ new class extends Component {
                 <div x-data="{
                     index: 0,
                     items: {{ json_encode($siswaBelumPresensi) }},
-                    // Fungsi untuk menghitung tinggi satu card secara otomatis
                     get itemHeight() {
                         return this.$refs.firstCard ? this.$refs.firstCard.offsetHeight + 12 : 120;
                     },
                     init() {
-                        // Animasi hanya jalan jika item melebihi kapasitas layar (asumsi > 5)
                         if (this.items.length > 3) {
                             setInterval(() => {
-                                // Reset ke 0 jika sudah mencapai item terakhir agar berputar terus
                                 this.index = (this.index >= this.items.length - 3) ? 0 : this.index + 1;
                             }, 3000);
                         }
@@ -257,33 +350,41 @@ new class extends Component {
         {{-- CENTER PANEL (Utama) --}}
         <div class="flex-1 flex flex-col gap-6 overflow-hidden">
         
-            {{-- Sedang Berlangsung --}}
-            {{-- CENTER PANEL (Utama) --}}
+            {{-- Section: Sedang Berlangsung --}}
             <div class="flex-1 flex flex-col min-h-0">
                 <div class="flex justify-between items-end mb-3 flex-none">
                     <h2 class="text-lg font-bold text-green-400 uppercase tracking-widest flex items-center gap-2">
-                        <span class="relative flex h-2.5 w-2.5">
-                            <span
-                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-                        </span>
+                    
                         Sedang Berlangsung
+                        <span class="relative flex h-2.5 w-2.5">
+                    
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                    
+                        </span>
+                    
+                    
                     </h2>
-                    {{-- Indikator Slide --}}
-                    <div x-data="{ current: 0, total: {{ ceil(count($jadwalSekarang) / 2) }} }" class="flex gap-1 mb-1">
-                        <template x-for="i in total">
-                            <div class="h-1 w-4 rounded-full transition-all duration-500"
-                                :class="$parent.active === (i-1) ? 'bg-green-400 w-8' : 'bg-slate-700'"></div>
-                        </template>
-                    </div>
+        
+                    {{-- Indikator Slide (Hanya muncul jika ada data) --}}
+                    @if(count($jadwalSekarang) > 0)
+                        <div x-data="{ current: 0, total: {{ ceil(count($jadwalSekarang) / 2) }} }" class="flex gap-1 mb-1">
+                            <template x-for="i in total">
+                                <div class="h-1 w-4 rounded-full transition-all duration-500"
+                                    :class="$parent.active === (i-1) ? 'bg-green-400 w-8' : 'bg-slate-700'"></div>
+                            </template>
+                        </div>
+                    @endif
                 </div>
-            
+        
                 <div x-data="{
                         active: 0,
-                        total: {{ ceil(count($jadwalSekarang) / 2) }},
+                        total: {{ max(1, ceil(count($jadwalSekarang) / 2)) }},
                         progress: 0,
+                        hasData: {{ count($jadwalSekarang) > 0 ? 'true' : 'false' }},
                         start() {
-                            if(this.total > 1) {
+                            if(this.hasData && this.total > 1) {
                                 setInterval(() => {
                                     this.progress += 1;
                                     if(this.progress >= 100) {
@@ -294,90 +395,101 @@ new class extends Component {
                             }
                         }
                     }" x-init="start"
-                    class="relative flex-1 bg-slate-900/60 rounded-2xl border border-slate-700/50 p-4 shadow-2xl overflow-hidden">
-            
-                    {{-- Background Glow Decor (Dikecilkan) --}}
-                    <div class="absolute -top-12 -right-12 w-40 h-40 bg-green-500/5 rounded-full blur-3xl"></div>
-            
-                    <div class="relative h-full w-full">
-                        @foreach(collect($jadwalSekarang)->chunk(2) as $index => $group)
-                            <div x-show="active === {{ $index }}" {{-- TRANSISI MASUK: Lebih lambat, datang dari bawah dengan blur pudar --}}
-                                x-transition:enter="transition cubic-bezier(0.4, 0, 0.2, 1) duration-1000 delay-300"
-                                x-transition:enter-start="opacity-0 scale-95 translate-y-8 blur-sm"
-                                x-transition:enter-end="opacity-100 scale-100 translate-y-0 blur-0" {{-- TRANSISI KELUAR: Lebih cepat sedikit,
-                                menghilang ke atas sambil memudar --}} x-transition:leave="transition cubic-bezier(0.4, 0, 0.2, 1) duration-700"
-                                x-transition:leave-start="opacity-100 scale-100 blur-0"
-                                x-transition:leave-end="opacity-0 scale-105 -translate-y-8 blur-sm"
-                                class="absolute inset-0 grid grid-cols-2 gap-4 items-center" style="display: none;" {{-- Mencegah konten numpuk
-                                saat load pertama --}}>
-                                @foreach($group as $jadwal)
-                                    <div
-                                        class="group bg-slate-800/40 backdrop-blur-sm rounded-xl p-5 border border-slate-700/50 shadow-lg h-full flex flex-col justify-between hover:border-green-500/30 transition-all duration-500">
-                                        {{-- Konten tetap sama --}}
-                                        <div>
-                                            <div class="flex justify-between items-start mb-3">
+                    class="relative flex-1 bg-slate-900/60 rounded-2xl border border-slate-700/50 p-4 shadow-2xl overflow-hidden flex flex-col justify-center">
+        
+                    @if(count($jadwalSekarang) > 0)
+                        {{-- Background Glow Decor --}}
+                        <div class="absolute -top-12 -right-12 w-40 h-40 bg-green-500/5 rounded-full blur-3xl"></div>
+
+                        <div class="relative h-full w-full">
+                            @foreach(collect($jadwalSekarang)->chunk(2) as $index => $group)
+                                <div x-show="active === {{ $index }}" x-transition:enter="transition ease-out duration-1000 delay-300"
+                                    x-transition:enter-start="opacity-0 scale-95 translate-y-8 blur-sm"
+                                    x-transition:enter-end="opacity-100 scale-100 translate-y-0 blur-0"
+                                    x-transition:leave="transition ease-in duration-700"
+                                    x-transition:leave-start="opacity-100 scale-100 blur-0"
+                                    x-transition:leave-end="opacity-0 scale-105 -translate-y-8 blur-sm"
+                                    class="absolute inset-0 grid grid-cols-2 gap-4 items-center" style="display: none;">
+
+                                    @foreach($group as $jadwal)
+                                        <div
+                                            class="group bg-slate-800/40 backdrop-blur-sm rounded-xl p-5 border border-slate-700/50 shadow-lg h-full flex flex-col justify-between hover:border-green-500/30 transition-all duration-500">
+                                            <div>
+                                                <div class="flex justify-between items-start mb-3">
+                                                    <span
+                                                        class="px-2 py-0.5 bg-green-500/10 text-green-400 text-[10px] font-bold rounded border border-green-500/20 uppercase tracking-tighter">
+                                                        Live Class
+                                                    </span>
+                                                </div>
+
+                                                <h3
+                                                    class="text-xl font-black text-white uppercase leading-tight mb-3 group-hover:text-green-400 transition-colors line-clamp-2">
+                                                    {{ $jadwal['mapel'] }}
+                                                </h3>
+
+                                                <div class="space-y-2">
+                                                    <div class="flex items-center gap-2">
+                                                        <div
+                                                            class="w-6 h-6 rounded bg-slate-700/50 flex items-center justify-center text-[10px]">
+                                                            🏫</div>
+                                                        <p class="text-sm font-bold text-slate-200">{{ $jadwal['kelas'] }}</p>
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        <div
+                                                            class="w-6 h-6 rounded bg-slate-700/50 flex items-center justify-center text-[10px]">
+                                                            👤</div>
+                                                        <p class="text-xs text-slate-400 truncate">{{ $jadwal['guru'] }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-4 pt-4 border-t border-slate-700/30 flex justify-between items-center">
                                                 <span
-                                                    class="px-2 py-0.5 bg-green-500/10 text-green-400 text-[10px] font-bold rounded border border-green-500/20 uppercase tracking-tighter">
-                                                    Live Class
-                                                </span>
-                                                <span class="text-slate-600 font-mono text-[10px]">#{{ rand(100, 999) }}</span>
-                                            </div>
-
-                                            <h3
-                                                class="text-xl font-black text-white uppercase leading-tight mb-3 group-hover:text-green-400 transition-colors line-clamp-2">
-                                                {{ $jadwal['mapel'] }}
-                                            </h3>
-
-                                            <div class="space-y-2">
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-6 h-6 rounded bg-slate-700/50 flex items-center justify-center text-[10px]">🏫
-                                                    </div>
-                                                    <p class="text-sm font-bold text-slate-200">{{ $jadwal['kelas'] }}</p>
-                                                </div>
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-6 h-6 rounded bg-slate-700/50 flex items-center justify-center text-[10px]">👤
-                                                    </div>
-                                                    <p class="text-xs text-slate-400 truncate">{{ $jadwal['guru'] }}</p>
+                                                    class="text-lg font-mono font-bold text-yellow-400 tracking-tighter">{{ $jadwal['jam'] }}</span>
+                                                <div class="flex -space-x-1.5">
+                                                    <div
+                                                        class="w-6 h-6 rounded-full border border-slate-800 bg-green-500 flex items-center justify-center text-[8px] font-bold text-white shadow-sm">
+                                                        IN</div>
+                                                    <div
+                                                        class="w-6 h-6 rounded-full border border-slate-800 bg-slate-600 flex items-center justify-center text-[8px] text-white">
+                                                        ...</div>
                                                 </div>
                                             </div>
                                         </div>
+                                    @endforeach
+                                </div>
+                            @endforeach
+                        </div>
 
-                                        <div class="mt-4 pt-4 border-t border-slate-700/30 flex justify-between items-center">
-                                            <span class="text-lg font-mono font-bold text-yellow-400 tracking-tighter">{{ $jadwal['jam'] }}</span>
-                                            <div class="flex -space-x-1.5">
-                                                <div
-                                                    class="w-6 h-6 rounded-full border border-slate-800 bg-green-500 flex items-center justify-center text-[8px] font-bold text-white shadow-sm">
-                                                    IN</div>
-                                                <div
-                                                    class="w-6 h-6 rounded-full border border-slate-800 bg-slate-600 flex items-center justify-center text-[8px] text-white">
-                                                    ...</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endforeach
-                    </div>
-            
-                    {{-- Progress Bar Bawah --}}
-                    <div class="absolute bottom-0 left-0 h-0.5 bg-green-500/40 transition-all duration-50"
-                        :style="`width: ${progress}%` shadow-sm"></div>
+                        {{-- Progress Bar Bawah --}}
+                        <div x-show="total > 1" class="absolute bottom-0 left-0 h-0.5 bg-green-500/40 transition-all duration-50"
+                            :style="`width: ${progress}%` shadow-sm"></div>
+                    @else
+                        {{-- EMPTY STATE: Tampil jika tidak ada jadwal --}}
+                        <div class="flex flex-col items-center justify-center text-center p-8 opacity-50">
+                            <div class="text-5xl mb-4">☕</div>
+                            <h3 class="text-xl font-bold text-slate-300 uppercase tracking-widest">Tidak Ada Pelajaran</h3>
+                            <p class="text-sm text-slate-500 mt-1">Saat ini adalah waktu istirahat atau belum ada jadwal yang
+                                dimulai.</p>
+                        </div>
+                    @endif
                 </div>
             </div>
         
-            {{-- Informasi --}}
+            {{-- Section: Informasi --}}
             <div class="flex-none">
                 <h2 class="text-xl font-bold text-yellow-400 mb-3 uppercase tracking-widest">Informasi</h2>
                 <div
-                    class="bg-linier-to-r from-slate-800 to-slate-800/50 p-6 rounded-2xl border border-yellow-500/20 shadow-xl flex items-center justify-between group">
+                    class="relative overflow-hidden bg-linier-to-r from-slate-800 to-slate-800/50 p-6 rounded-2xl border border-yellow-500/20 shadow-xl flex items-center justify-between group">
                     <span
                         class="absolute top-2 left-4 text-6xl text-blue-500/10 font-serif group-hover:text-blue-500/20 transition-colors">“</span>
-                    <p class="text-xl text-slate-200 font-medium relative z-10 px-8">
-                        "Teknologi hanyalah alat. Dalam hal membuat anak-anak bekerja sama dan memotivasi mereka, guru adalah yang
-                        paling penting."
-                    </p>
-                    <p class="text-xs text-blue-400 font-bold uppercase mt-3 tracking-widest">— Bill Gates</p>
-            
+                    <div class="relative z-10 px-8">
+                        <p class="text-xl text-slate-200 font-medium italic">
+                            "Teknologi hanyalah alat. Dalam hal membuat anak-anak bekerja sama dan memotivasi mereka, guru
+                            adalah yang paling penting."
+                        </p>
+                        <p class="text-xs text-blue-400 font-bold uppercase mt-3 tracking-widest">— Bill Gates</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -393,13 +505,13 @@ new class extends Component {
                         <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
                         <h2 class="text-[11px] font-black text-white uppercase tracking-[0.2em]">Agenda Hari Ini</h2>
                     </div>
-                    <span class="text-[10px] font-mono text-slate-500 uppercase">{{ count($jadwalSekarang) }} Jadwal</span>
+                    <span class="text-[10px] font-mono text-slate-500 uppercase">{{ count($jadwalHariIni) }} Jadwal</span>
                 </div>
         
                 {{-- Area Slider --}}
                 <div x-data="{
                         index: 0,
-                        items: {{ json_encode($jadwalSekarang) }},
+                        items: {{ json_encode($jadwalHariIni) }},
                         // Fungsi untuk menghitung tinggi satu card secara otomatis
                         get itemHeight() {
                             return this.$refs.firstCard ? this.$refs.firstCard.offsetHeight + 12 : 120;
@@ -420,30 +532,29 @@ new class extends Component {
         
                         <template x-for="(jadwal, i) in items" :key="i">
                             <div
-                                class="card-item bg-slate-700/40 rounded-xl p-3 mb-2 border border-slate-600/30 flex flex-col justify-center min-h-[85px] transition-all duration-500 hover:bg-blue-600/20 hover:border-blue-500/30">
-        
+                                class="card-item group relative bg-slate-800/40 rounded-2xl p-4 mb-3 border border-slate-700/50 transition-all duration-500 hover:bg-slate-800/60 hover:border-blue-500/50 shadow-lg flex flex-col justify-between min-h-[100px]">
+                        
                                 <div class="flex justify-between items-start">
-                                    <p class="font-bold text-[13px] text-blue-300 uppercase leading-tight line-clamp-1"
-                                        x-text="jadwal.mapel"></p>
-                                    <span class="text-[9px] font-mono text-slate-500" x-text="jadwal.jam"></span>
-                                </div>
-        
-                                <div class="flex items-center gap-2 mt-2">
-                                    <span
-                                        class="text-[9px] font-black bg-slate-800 text-blue-400 px-1.5 py-0.5 rounded border border-slate-700 uppercase"
-                                        x-text="jadwal.kelas"></span>
-                                    <div class="h-1 w-1 bg-slate-600 rounded-full"></div>
-                                    <p class="text-[10px] text-slate-400 truncate font-medium italic" x-text="jadwal.guru"></p>
-                                </div>
-        
-                                {{-- Status Dot --}}
-                                <div class="flex justify-end mt-1">
-                                    <div class="flex gap-0.5">
-                                        <div class="w-1 h-1 rounded-full" :class="i < 3 ? 'bg-blue-500' : 'bg-slate-700'"></div>
-                                        <div class="w-1 h-1 rounded-full bg-slate-700"></div>
-                                        <div class="w-1 h-1 rounded-full bg-slate-700"></div>
+                                    {{-- MAPEL & GURU --}}
+                                    <div class="flex-1 pr-4">
+                                        <p class="font-black text-[15px] text-white uppercase leading-tight group-hover:text-blue-400 transition-colors"
+                                            x-text="jadwal.mapel"></p>
+                                        <p class="text-[11px] text-slate-500 font-medium mt-1 truncate" x-text="jadwal.guru"></p>
+                                    </div>
+                        
+                                    {{-- JAM: Dibuat Besar, Bold, dan Menonjol --}}
+                                    <div class="text-right flex flex-col items-end">
+                                        <span class="text-[16px] font-mono font-black tracking-tighter leading-none"
+                                            :class="i === 0 ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]' : 'text-slate-400'"
+                                            x-text="jadwal.jam"></span>
+                                        <span class="text-[9px] font-black uppercase tracking-widest mt-1 px-2 py-0.5 rounded"
+                                            :class="i === 0 ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-slate-900 text-slate-600'"
+                                            x-text="jadwal.kelas"></span>
                                     </div>
                                 </div>
+                        
+                                {{-- FOOTER: Status & Indicator --}}
+                                
                             </div>
                         </template>
         
