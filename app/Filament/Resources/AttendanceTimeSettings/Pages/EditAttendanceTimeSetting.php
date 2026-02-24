@@ -23,6 +23,8 @@ class EditAttendanceTimeSetting extends EditRecord
 
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
+        $record->update($data);
+
         // Hapus cache lama supaya nanti di-load ulang
         Cache::forget('attendance_time_setting');
 
