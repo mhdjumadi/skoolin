@@ -1,6 +1,6 @@
 <x-filament-widgets::widget>
     {{-- <x-filament::section> --}}
-        <div class="w-full rounded-xl shadow-lg p-4 text-center font-semibold overflow-hidden bg-[#134686] text-white" x-data="{ 
+        <div class="w-full rounded-xl shadow-lg p-4 text-center font-semibold overflow-hidden bg-[#10B981] text-white" x-data="{ 
                 time: '{{ $currentTime }}', 
                 text: '{{ $currentLessonText }}', 
                 status: '{{ $currentLessonStatus }}', 

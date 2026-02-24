@@ -51,7 +51,7 @@ class AttendanceController extends Controller
         // ============================================
         $attendanceDevice = AttendanceDevice::where('serial_number', $deviceNumber)->first();
         if (!$attendanceDevice) {
-            return new AttendanceResource(false, 'Belum terdaftar', [
+            return new AttendanceResource(false, 'Device unregister', [
                 'device_number' => $request->device_number,
             ]);
         }
@@ -71,7 +71,7 @@ class AttendanceController extends Controller
                 ]
             );
 
-            return new AttendanceResource(false, 'Belum terdaftar', [
+            return new AttendanceResource(false, 'Card unregister', [
                 'rfid_uid' => $rfid_uid,
             ]);
         }
@@ -97,13 +97,13 @@ class AttendanceController extends Controller
         // 5. Terlalu pagi
         // ============================================
         if ($time < $rule->in_start) {
-            return new AttendanceResource(false, 'Gagal presensi', null);
+            return new AttendanceResource(false, 'Outside hours', null);
         }
 
         // ============================================
         // 6. Absen Masuk
         // ============================================
-        
+
         if ($time >= $rule->in_start && $time < $rule->out_start) {
             $status = ($time >= $rule->in_end && $time < $rule->out_start)
                 ? 'terlambat'
@@ -148,11 +148,11 @@ class AttendanceController extends Controller
         if ($time >= $rule->out_start && $time <= $rule->out_end) {
 
             if (!$attendance) {
-                return new AttendanceResource(false, 'Belum absensi!', null);
+                return new AttendanceResource(false, 'Belum presensi!', null);
             }
 
             if ($attendance->check_out !== null) {
-                return new AttendanceResource(false, 'Sudah absensi!', null);
+                return new AttendanceResource(false, 'Sudah presensi!', null);
             }
 
             $attendance->update([
@@ -168,7 +168,7 @@ class AttendanceController extends Controller
             ]);
         }
 
-        return new AttendanceResource(false, 'Bukan waktu absensi.', null);
+        return new AttendanceResource(false, 'Outside hours', null);
     }
 
     /**
