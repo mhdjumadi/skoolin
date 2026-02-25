@@ -4,14 +4,13 @@
                 time: '{{ $currentTime }}', 
                 text: '{{ $currentLessonText }}', 
                 status: '{{ $currentLessonStatus }}', 
-                {{-- GUNAKAN translatedFormat UNTUK BAHASA INDONESIA --}}
                 date: '{{ now()->locale('id')->translatedFormat('l, d F Y') }}' 
-            }" {{-- Pantau perubahan dari Livewire dan update variabel Alpine --}} x-init="
+            }" x-init="
                 setInterval(() => { @this.call('updateTime'); }, 1000);
                 $watch('$wire.currentTime', value => { time = value });
             ">
         
-            <div class="text-lg mb-2" x-text="date"></div>
+            <div class="text-lg mb-2 uppercase" x-text="date"></div>
         
             <div class="text-3xl font-bold mb-1" x-text="time"></div>
         

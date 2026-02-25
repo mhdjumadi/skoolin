@@ -5,10 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\AcademicYear;
 use App\Models\AttendanceDevice;
-use App\Models\RfidDevice;
 use App\Models\StudentAttendance;
 use Illuminate\Http\Request;
-use App\Models\Attendance;
 use App\Models\AttendanceTimeSetting;
 use App\Models\WhatsappSetting;
 use App\Models\Student;
@@ -47,19 +45,18 @@ class AttendanceController extends Controller
         $deviceNumber = $request->device_number;
 
         // ============================================
-        // 2. Cari student berdasarkan RFID
+        // 2. Cari RFID device
         // ============================================
         $attendanceDevice = AttendanceDevice::where('serial_number', $deviceNumber)->first();
         if (!$attendanceDevice) {
-            return new AttendanceResource(false, 'Device unregister', [
+            return new AttendanceResource(false, 'Panduan - 001', [
                 'device_number' => $request->device_number,
             ]);
         }
 
 
         // ============================================
-        // 3. Jika RFID belum terdaftar sebagai student
-        //    simpan ke RfidMaster
+        // 3. Jika RFID belum terdaftar simpan ke RfidMaster
         // ============================================
         $rfidMaster = RfidMaster::where('rfid_uid', $rfid_uid)->first();
         if (!$rfidMaster) {
@@ -71,12 +68,21 @@ class AttendanceController extends Controller
                 ]
             );
 
-            return new AttendanceResource(false, 'Card unregister', [
+            return new AttendanceResource(false, 'Panduan - 002', [
                 'rfid_uid' => $rfid_uid,
             ]);
         }
 
+        // ============================================
+        // 4. Ambil cek kepemilikan rfid master
+        // ============================================
         $student = Student::where('id', $rfidMaster->student_id)->first();
+        if (!$student) {
+            return new AttendanceResource(false, 'Panduan - 003', [
+                'rfid_uid' => $rfid_uid,
+            ]);
+        }
+
 
         // ============================================
         // 4. Ambil aturan presensi
@@ -84,6 +90,10 @@ class AttendanceController extends Controller
         $rule = Cache::rememberForever('attendance_time_setting', function () {
             return AttendanceTimeSetting::first();
         });
+
+        if (!$rule) {
+            return new AttendanceResource(false, 'Panduan - 004', null);
+        }
 
         $now = now();
         $time = $now->format('H:i:s');
@@ -97,7 +107,7 @@ class AttendanceController extends Controller
         // 5. Terlalu pagi
         // ============================================
         if ($time < $rule->in_start) {
-            return new AttendanceResource(false, 'Outside hours', null);
+            return new AttendanceResource(false, 'Diluar waktu!', null);
         }
 
         // ============================================
@@ -168,7 +178,7 @@ class AttendanceController extends Controller
             ]);
         }
 
-        return new AttendanceResource(false, 'Outside hours', null);
+        return new AttendanceResource(false, 'Diluar waktu!', null);
     }
 
     /**
