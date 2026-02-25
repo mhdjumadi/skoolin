@@ -189,39 +189,6 @@ new class extends Component {
                 'alpha' => $hitungAlpha,
             ];
         }
-
-        $this->guruBelumMasuk = [
-            [
-                'kelas' => 'X A',
-                'mapel' => 'Bahasa Inggris',
-                'nama' => 'Muhammad Jumadi',
-                'foto' => null, // Opsional untuk UI
-            ],
-            [
-                'kelas' => 'X A',
-                'mapel' => 'Bahasa Inggris',
-                'nama' => 'Muhammad Jumadi',
-                'foto' => null, // Opsional untuk UI
-            ],
-            [
-                'kelas' => 'X A',
-                'mapel' => 'Bahasa Inggris',
-                'nama' => 'Muhammad Jumadi',
-                'foto' => null, // Opsional untuk UI
-            ],
-            [
-                'kelas' => 'X A',
-                'mapel' => 'Bahasa Inggris',
-                'nama' => 'Muhammad Jumadi',
-                'foto' => null, // Opsional untuk UI
-            ],
-            [
-                'kelas' => 'X A',
-                'mapel' => 'Bahasa Inggris',
-                'nama' => 'Muhammad Jumadi',
-                'foto' => null, // Opsional untuk UI
-            ]
-        ];
     }
 };
 ?>
