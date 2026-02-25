@@ -163,7 +163,7 @@ new class extends Component {
             })->count();
 
             // 2. Ambil data absensi hari ini
-            $attendanceStats = StudentAttendance::whereDate('attendance_date', $todayDate)
+            $attendanceStats = StudentAttendance::whereDate('date', $todayDate)
                 ->selectRaw('status, count(*) as count')
                 ->groupBy('status')
                 ->pluck('count', 'status');
