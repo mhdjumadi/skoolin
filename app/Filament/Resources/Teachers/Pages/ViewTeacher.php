@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Teacher\Pages;
+namespace App\Filament\Resources\Teachers\Pages;
 
 use App\Filament\Resources\Teachers\TeacherResource;
 use Filament\Actions\EditAction;
