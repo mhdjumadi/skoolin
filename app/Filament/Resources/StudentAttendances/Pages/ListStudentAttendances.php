@@ -17,7 +17,8 @@ class ListStudentAttendances extends ListRecords
             CreateAction::make()
                 ->label('Presensi baru'),
             ExportAction::make()
-                ->label('Export presensi')
+                ->label('Download presensi')
+                ->icon('heroicon-o-arrow-down-tray')
                 ->exporter(StudentAttendanceExporter::class),
         ];
     }

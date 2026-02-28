@@ -8,16 +8,12 @@ use App\Models\StudentAttendance;
 use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Number;
 
 class StudentAttendanceReportExporter extends Exporter
 {
-    // protected static ?string $model = StudentAttendance::class;
-    // protected static ?string $model = Student::class;
-
-
     public static function modifyQuery(Builder $query): Builder
     {
 

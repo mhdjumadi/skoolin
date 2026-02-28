@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Exports\JournalAttendanceReportExporter;
 use App\Models\TeachingJournal;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Carbon\Carbon;
@@ -171,8 +172,9 @@ class JournalAttendanceReport extends Page implements HasTable
     {
         return [
             ExportAction::make()
-                ->label('Export laporan')
+                ->label('Download laporan')
                 ->icon('heroicon-o-arrow-down-tray')
+                ->exporter(JournalAttendanceReportExporter::class)
                 ->formats([ExportFormat::Xlsx]),
         ];
     }

@@ -18,7 +18,8 @@ class ListRfidMasters extends ListRecords
             CreateAction::make()
             ->label('Kartu baru'),
             ExportAction::make()
-                ->label('Export RFID master')
+                ->label('Download RFID master')
+                ->icon('heroicon-o-arrow-down-tray')
                 ->exporter(RfidMasterExporter::class),
         ];
     }

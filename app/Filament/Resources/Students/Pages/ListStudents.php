@@ -20,7 +20,8 @@ class ListStudents extends ListRecords
             CreateAction::make()
                 ->label('Siswa baru'),
             ExportAction::make()
-                ->label('Export siswa')
+                ->label('Download siswa')
+                ->icon('heroicon-o-arrow-down-tray')
                 ->exporter(StudentExporter::class),
             ImportAction::make()
                 ->label('Import siswa')

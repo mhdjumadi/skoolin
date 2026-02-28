@@ -50,7 +50,7 @@ class StudentAttendanceForm
                                     return [];
 
                                 return StudentClass::where('student_id', $studentId)
-                                    ->where('academic_year_id', $activeYear->id)
+                                    // ->where('academic_year_id', $activeYear->id)
                                     ->with('class')
                                     ->get()
                                     ->pluck('class.name', 'class.id');

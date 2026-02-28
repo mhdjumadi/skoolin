@@ -18,7 +18,8 @@ class ListTeachers extends ListRecords
             CreateAction::make()
             ->label('Guru baru'),
             ExportAction::make()
-                ->label('Export guru')
+                ->label('Download guru')
+                ->icon('heroicon-o-arrow-down-tray')
                 ->exporter(TeacherExporter::class),
         ];
     }

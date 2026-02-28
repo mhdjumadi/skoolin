@@ -17,7 +17,8 @@ class ListTeachingSchedules extends ListRecords
             CreateAction::make()
                 ->label('Jadwal baru'),
             ExportAction::make()
-                ->label('Export jadwal')
+                ->label('Download jadwal')
+                ->icon('heroicon-o-arrow-down-tray')
                 ->exporter(TeachingScheduleExporter::class),
         ];
     }

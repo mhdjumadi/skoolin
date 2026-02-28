@@ -31,7 +31,8 @@ class ListTeachingJournals extends ListRecords
             CreateAction::make()
                 ->label('Jurnal baru'),
             ExportAction::make()
-                ->label('Export jurnal')
+                ->label('Download jurnal')
+                ->icon('heroicon-o-arrow-down-tray')
                 ->exporter(TeachingJournalExporter::class),
         ];
     }

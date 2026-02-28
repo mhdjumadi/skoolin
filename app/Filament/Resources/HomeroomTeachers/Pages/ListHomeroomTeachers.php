@@ -18,7 +18,8 @@ class ListHomeroomTeachers extends ListRecords
             CreateAction::make()
             ->label('Wali kelas baru'),
             ExportAction::make()
-                ->label('Export wali kelas')
+                ->label('Download wali kelas')
+                ->icon('heroicon-o-arrow-down-tray')
                 ->exporter(HomeroomTeacherExporter::class),
         ];
     }
