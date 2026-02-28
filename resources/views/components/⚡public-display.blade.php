@@ -310,7 +310,7 @@ new class extends Component {
                        @empty
                            <div class="py-10 flex flex-col items-center justify-center opacity-30">
                                <span class="text-2xl">👨‍🏫</span>
-                               <p class="text-[10px] mt-1 uppercase">Guru sedang mengajar</p>
+                               <p class="text-[10px] mt-1 uppercase">Belum ada data</p>
                            </div>
                        @endforelse
               
