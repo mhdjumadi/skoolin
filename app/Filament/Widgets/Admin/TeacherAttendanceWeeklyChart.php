@@ -69,7 +69,8 @@ class TeacherAttendanceWeeklyChart extends ChartWidget
                 [
                     'label' => 'Persentase Kehadiran Guru',
                     'data' => $percentage,
-                    'backgroundColor' => '#3b82f6',
+                    'backgroundColor' => 'rgba(37, 99, 235, 0.7)',
+                    'borderColor' => '#1d4ed8',
                 ],
             ],
             'labels' => $dates->map(fn($d) => Carbon::parse($d)->format('d M')),

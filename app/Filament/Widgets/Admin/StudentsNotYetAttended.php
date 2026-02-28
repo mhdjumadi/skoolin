@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets\Admin;
 
+use App\Models\AcademicYear;
 use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\TableWidget;
 use Filament\Tables\Table;
@@ -21,31 +22,38 @@ class StudentsNotYetAttended extends TableWidget
     public function table(Table $table): Table
     {
         $today = now()->toDateString();
-
-        // Ambil semua absensi siswa hari ini
-        $attendedIds = StudentAttendance::whereDate('date', $today)
-            ->pluck('student_id')
-            ->toArray();
+        $activeYear = AcademicYear::where('is_active', true)->first();
 
         return $table
             ->query(
                 fn(): Builder => Student::query()
-                    ->where('is_active', true)
-                    ->whereNotIn('id', $attendedIds)
-                    ->with('classes')
+                    ->select('students.*', 'classes.name as class_name')
+                    ->leftJoin('student_classes', function ($join) use ($activeYear) {
+                        $join->on('students.id', '=', 'student_classes.student_id')
+                            ->where('student_classes.academic_year_id', $activeYear->id);
+                    })
+                    ->leftJoin('classes', function ($join) {
+                        $join->on('student_classes.class_id', '=', 'classes.id');
+                        // ->where('classes.is_active', true);
+                    })
+                    ->where('students.is_active', true)
+                    ->whereNotIn('students.id', function ($q) use ($today) {
+                        $q->select('student_id')
+                            ->from('student_attendances')
+                            ->whereDate('date', $today);
+                    })
             )
             ->columns([
-                TextColumn::make('nisn')
-                    ->label('NISN')
-                    ->sortable(),
                 TextColumn::make('name')
                     ->label('Nama Siswa')
                     ->sortable(),
-                TextColumn::make('classes.name')
+                TextColumn::make('nisn')
+                    ->label('NISN')
+                    ->sortable(),
+                TextColumn::make('class_name')
                     ->label('Kelas')
                     ->sortable(),
             ])
-            ->filters([
-            ]);
+            ->filters([]);
     }
 }

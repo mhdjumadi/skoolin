@@ -25,126 +25,25 @@ class TeachingScheduleForm
             ->components([
                 Section::make()
                     ->schema([
-                        // Select::make('academic_year_id')
-                        //     ->label('Tahun Akademik')
-                        //     ->options(AcademicYear::all()->pluck('name', 'id')->toArray())
-                        //     ->required()
-                        //     ->rules([
-                        //         fn($get, $record) => Rule::unique(TeachingSchedule::class)
-                        //             ->where('academic_year_id', $get('academic_year_id'))
-                        //             ->where('class_id', $get('class_id'))
-                        //             ->where('day_id', $get('day_id'))
-                        //             ->where('start_period_id', $get('start_period_id'))
-                        //             ->where('end_period_id', $get('end_period_id'))
-                        //             ->ignore($record),
-                        //     ])
-                        //     ->validationMessages([
-                        //         'unique' => 'Jadwal kelas dengan rentang waktu tersebut sudah ada.',
-                        //     ]),
                         Select::make('academic_year_id')
                             ->label('Tahun Akademik')
                             ->options(AcademicYear::all()->pluck('name', 'id')->toArray())
-                            ->required()
-                            ->unique(
-                                table: TeachingSchedule::class,
-                                column: 'academic_year_id',
-                                ignoreRecord: true,
-                                modifyRuleUsing: function (Unique $rule, callable $get) {
-                                    return $rule->where(function ($query) use ($get) {
-                                        $query
-                                            ->where('academic_year_id', $get('academic_year_id'))
-                                            ->where('class_id', $get('class_id'))
-                                            ->where('subject_id', $get('subject_id'))
-                                            ->where('teacher_id', $get('teacher_id'))
-                                            ->where('day_id', $get('day_id'))
-                                            ->where('start_period_id', $get('start_period_id'))
-                                            ->where('end_period_id', $get('end_period_id'));
-                                    });
-                                }
-                            )
-                            ->validationMessages([
-                                'unique' => 'Jadwal sudah ada pada waktu tersebut.',
-                            ]),
+                            ->required(),
 
                         Select::make('class_id')
                             ->label('Kelas')
                             ->options(Classes::all()->pluck('name', 'id')->toArray())
-                            ->required()
-                            ->unique(
-                                table: TeachingSchedule::class,
-                                column: 'class_id',
-                                ignoreRecord: true,
-                                modifyRuleUsing: function (Unique $rule, callable $get) {
-                                    return $rule->where(function ($query) use ($get) {
-                                        $query
-                                            ->where('academic_year_id', $get('academic_year_id'))
-                                            ->where('class_id', $get('class_id'))
-                                            ->where('subject_id', $get('subject_id'))
-                                            ->where('teacher_id', $get('teacher_id'))
-                                            ->where('day_id', $get('day_id'))
-                                            ->where('start_period_id', $get('start_period_id'))
-                                            ->where('end_period_id', $get('end_period_id'));
-                                    });
-                                }
-                            )
-                            ->validationMessages([
-                                'unique' => 'Kelas sudah ada pada waktu tersebut.',
-                            ]),
-
-                        // Select::make('teacher_id')
-                        //     ->label('Guru')
-                        //     ->options(Teacher::with('user')->get()->pluck('user.name', 'id')->toArray())
-                        //     ->required(),
+                            ->required(),
 
                         Select::make('teacher_id')
                             ->label('Guru')
                             ->options(Teacher::with('user')->get()->pluck('user.name', 'id')->toArray())
-                            ->required()
-                            ->unique(
-                                table: TeachingSchedule::class,
-                                column: 'teacher_id',
-                                ignoreRecord: true,
-                                modifyRuleUsing: function (Unique $rule, callable $get) {
-                                    return $rule->where(function ($query) use ($get) {
-                                        $query
-                                            ->where('academic_year_id', $get('academic_year_id'))
-                                            ->where('class_id', $get('class_id'))
-                                            ->where('subject_id', $get('subject_id'))
-                                            ->where('teacher_id', $get('teacher_id'))
-                                            ->where('day_id', $get('day_id'))
-                                            ->where('start_period_id', $get('start_period_id'))
-                                            ->where('end_period_id', $get('end_period_id'));
-                                    });
-                                }
-                            )
-                            ->validationMessages([
-                                'unique' => 'Guru sudah ada pada waktu tersebut.',
-                            ]),
+                            ->required(),
 
                         Select::make('subject_id')
                             ->label('Mata Pelajaran')
                             ->options(Subject::all()->pluck('name', 'id')->toArray())
-                            ->required()
-                            ->unique(
-                                table: TeachingSchedule::class,
-                                column: 'subject_id',
-                                ignoreRecord: true,
-                                modifyRuleUsing: function (Unique $rule, callable $get) {
-                                    return $rule->where(function ($query) use ($get) {
-                                        $query
-                                            ->where('academic_year_id', $get('academic_year_id'))
-                                            ->where('class_id', $get('class_id'))
-                                            ->where('subject_id', $get('subject_id'))
-                                            ->where('teacher_id', $get('teacher_id'))
-                                            ->where('day_id', $get('day_id'))
-                                            ->where('start_period_id', $get('start_period_id'))
-                                            ->where('end_period_id', $get('end_period_id'));
-                                    });
-                                }
-                            )
-                            ->validationMessages([
-                                'unique' => 'Mata Pelajaran sudah ada pada waktu tersebut.',
-                            ]),
+                            ->required(),
 
                         Select::make('start_period_id')
                             ->label('Jam Mulai Mengajar')
@@ -155,27 +54,7 @@ class TeachingScheduleForm
                                     ];
                                 })->toArray()
                             )
-                            ->required()
-                            ->unique(
-                                table: TeachingSchedule::class,
-                                column: 'start_period_id',
-                                ignoreRecord: true,
-                                modifyRuleUsing: function (Unique $rule, callable $get) {
-                                    return $rule->where(function ($query) use ($get) {
-                                        $query
-                                            ->where('academic_year_id', $get('academic_year_id'))
-                                            ->where('class_id', $get('class_id'))
-                                            ->where('subject_id', $get('subject_id'))
-                                            ->where('teacher_id', $get('teacher_id'))
-                                            ->where('day_id', $get('day_id'))
-                                            ->where('start_period_id', $get('start_period_id'))
-                                            ->where('end_period_id', $get('end_period_id'));
-                                    });
-                                }
-                            )
-                            ->validationMessages([
-                                'unique' => 'Mata Pelajaran sudah ada pada waktu tersebut.',
-                            ]),
+                            ->required(),
 
                         Select::make('end_period_id')
                             ->label('Jam Berakhir Mengajar')
@@ -186,27 +65,7 @@ class TeachingScheduleForm
                                     ];
                                 })->toArray()
                             )
-                            ->required()
-                            ->unique(
-                                table: TeachingSchedule::class,
-                                column: 'end_period_id',
-                                ignoreRecord: true,
-                                modifyRuleUsing: function (Unique $rule, callable $get) {
-                                    return $rule->where(function ($query) use ($get) {
-                                        $query
-                                            ->where('academic_year_id', $get('academic_year_id'))
-                                            ->where('class_id', $get('class_id'))
-                                            ->where('subject_id', $get('subject_id'))
-                                            ->where('teacher_id', $get('teacher_id'))
-                                            ->where('day_id', $get('day_id'))
-                                            ->where('start_period_id', $get('start_period_id'))
-                                            ->where('end_period_id', $get('end_period_id'));
-                                    });
-                                }
-                            )
-                            ->validationMessages([
-                                'unique' => 'Mata Pelajaran sudah ada pada waktu tersebut.',
-                            ]),
+                            ->required(),
 
                         Radio::make('day_id')
                             ->label('Hari')
@@ -218,33 +77,7 @@ class TeachingScheduleForm
                                 })->toArray()
                             )
                             ->columns(2)
-                            ->required()
-                            ->unique(
-                                table: TeachingSchedule::class,
-                                column: 'day_id',
-                                ignoreRecord: true,
-                                modifyRuleUsing: function (Unique $rule, callable $get) {
-                                    return $rule->where(function ($query) use ($get) {
-                                        $query
-                                            ->where('academic_year_id', $get('academic_year_id'))
-                                            ->where('class_id', $get('class_id'))
-                                            ->where('subject_id', $get('subject_id'))
-                                            ->where('teacher_id', $get('teacher_id'))
-                                            ->where('day_id', $get('day_id'))
-                                            ->where('start_period_id', $get('start_period_id'))
-                                            ->where('end_period_id', $get('end_period_id'));
-                                    });
-                                }
-                            )
-                            ->validationMessages([
-                                'unique' => 'Mata Pelajaran sudah ada pada waktu tersebut.',
-                            ]),
-
-
-                        // Select::make('day_id')
-                        //     ->label('Hari')
-                        //     ->options(Day::orderBy('number')->pluck('name', 'id')->toArray())
-                        //     ->required(),
+                            ->required(),
                     ])
                     ->columns('2')
                     ->columnSpanFull()

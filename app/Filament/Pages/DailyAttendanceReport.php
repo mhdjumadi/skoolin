@@ -2,7 +2,10 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Exports\StudentAttendanceReportExporter;
+use App\Models\AcademicYear;
 use App\Models\Student;
+use App\Models\StudentAttendance;
 use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
@@ -15,6 +18,7 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Actions\ExportAction;
 use Filament\Actions\Exports\Enums\ExportFormat;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 use BackedEnum;
 
@@ -37,34 +41,22 @@ class DailyAttendanceReport extends Page implements HasTable
     public ?array $classId = null; // property untuk filter kelas
 
 
-    // protected function getTableQuery()
-    // {
-    //     $query = Student::query()
-    //         ->with('attendances.class')
-    //         ->withCount([
-    //             'attendances as hadir_count' => fn($q) => $q->where('status', 'hadir'),
-    //             'attendances as izin_count' => fn($q) => $q->where('status', 'izin'),
-    //             'attendances as sakit_count' => fn($q) => $q->where('status', 'sakit'),
-    //             'attendances as dispensasi_count' => fn($q) => $q->where('status', 'dispensasi'),
-    //         ])
-    //         ->where('students.is_active', true);
-
-    //     return $query;
-    // }
 
     protected function getTableQuery()
     {
         $user = auth()->user();
-
-        $query = Student::query()
-            ->with('attendances.class')
-            ->withCount([
-                'attendances as hadir_count' => fn($q) => $q->where('status', 'hadir'),
-                'attendances as izin_count' => fn($q) => $q->where('status', 'izin'),
-                'attendances as sakit_count' => fn($q) => $q->where('status', 'sakit'),
-                'attendances as dispensasi_count' => fn($q) => $q->where('status', 'dispensasi'),
-            ])
-            ->where('students.is_active', true);
+        $query = StudentAttendance::query()
+            ->selectRaw('
+            student_id,
+            class_id,
+            academic_year_id,
+            student_id || "-" || class_id || "-" || academic_year_id as id,
+            COUNT(CASE WHEN status IN ("hadir","terlambat") THEN 1 END) as hadir_count,
+            COUNT(CASE WHEN status = "izin" THEN 1 END) as izin_count,
+            COUNT(CASE WHEN status = "sakit" THEN 1 END) as sakit_count,
+            COUNT(CASE WHEN status = "dispensasi" THEN 1 END) as dispensasi_count
+        ')
+            ->groupBy('student_id', 'class_id', 'academic_year_id');
 
         // Jika user guardian, filter hanya anaknya
         if ($user->hasRole('guardian')) {
@@ -79,13 +71,12 @@ class DailyAttendanceReport extends Page implements HasTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')
+                TextColumn::make('student.name')
                     ->label('Nama Siswa')
                     ->searchable(),
-                TextColumn::make('attendances.class.name')
-                    ->label('Kelas')
-                    ->searchable(),
-                TextColumn::make('attendances.academicYear.name')
+                TextColumn::make('class.name')
+                    ->label('Kelas'),
+                TextColumn::make('academicYear.name')
                     ->label('Tahun Akademik')
                     ->searchable(),
                 TextColumn::make('hadir_count')
@@ -105,38 +96,48 @@ class DailyAttendanceReport extends Page implements HasTable
                     ->color('gray'),
             ])
             ->filters([
-                // Filter tanggal
+
+                // 🔹 Filter Tahun Akademik
+                SelectFilter::make('academic_year_id')
+                    ->label('Tahun Akademik')
+                    ->relationship('academicYear', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->default(function () {
+                        return AcademicYear::where('is_active', true)
+                            ->value('id'); // cukup satu, tidak perlu array
+                    }),
+
+                // 🔹 Filter Tanggal
                 Filter::make('date')
                     ->form([
                         DatePicker::make('from')
                             ->label('Dari')
                             ->default(now()->startOfMonth()),
+
                         DatePicker::make('until')
                             ->label('Sampai')
-                            ->default(now()->addDay()),
+                            ->default(now()),
                     ])
                     ->query(function ($query, $data) {
-                        if (!empty($data['from']) && !empty($data['until'])) {
-                            $query->whereHas('attendances', function ($q) use ($data) {
-                                $q->whereBetween('date', [$data['from'], $data['until']]);
-                            });
-                        }
+                        return $query
+                            ->when(
+                                $data['from'],
+                                fn($q) => $q->whereDate('date', '>=', $data['from'])
+                            )
+                            ->when(
+                                $data['until'],
+                                fn($q) => $q->whereDate('date', '<=', $data['until'])
+                            );
                     }),
-                // Filter tahun akademik
-                SelectFilter::make('academic_year')
-                    ->label('Tahun Akademik')
-                    ->relationship('attendances.academicYear', 'name')
-                    ->multiple()
+
+                // 🔹 Filter Kelas
+                SelectFilter::make('class_id')
+                    ->label('Kelas')
+                    ->relationship('class', 'name')
                     ->searchable()
                     ->preload(),
 
-                // Filter kelas
-                SelectFilter::make('kelas')
-                    ->label('Kelas')
-                    ->relationship('attendances.class', 'name')
-                    ->multiple()
-                    ->searchable()
-                    ->preload(),
             ])
             ->defaultSort('name');
     }
@@ -146,6 +147,7 @@ class DailyAttendanceReport extends Page implements HasTable
         return [
             ExportAction::make()
                 ->label('Export Laporan')
+                ->exporter(StudentAttendanceReportExporter::class)
                 ->formats([ExportFormat::Xlsx]),
         ];
     }

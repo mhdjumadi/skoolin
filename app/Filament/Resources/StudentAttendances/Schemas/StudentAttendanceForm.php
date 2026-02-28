@@ -5,6 +5,7 @@ namespace App\Filament\Resources\StudentAttendances\Schemas;
 use App\Models\AcademicYear;
 use App\Models\Classes;
 use App\Models\Student;
+use App\Models\StudentClass;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -24,13 +25,37 @@ class StudentAttendanceForm
                             ->label('Tahun Akademik')
                             ->options(AcademicYear::all()->pluck('name', 'id')->toArray())
                             ->required(),
+                        // Select::make('student_id')
+                        //     ->label('Siswa')
+                        //     ->options(Student::all()->pluck('name', 'id')->toArray())
+                        //     ->required(),
+                        // Select::make('class_id')
+                        //     ->label('Kelas')
+                        //     ->options(Classes::all()->pluck('name', 'id')->toArray())
+                        //     ->required(),
                         Select::make('student_id')
                             ->label('Siswa')
-                            ->options(Student::all()->pluck('name', 'id')->toArray())
+                            ->options(Student::pluck('name', 'id'))
+                            ->reactive()
                             ->required(),
                         Select::make('class_id')
                             ->label('Kelas')
-                            ->options(Classes::all()->pluck('name', 'id')->toArray())
+                            ->options(function (callable $get) {
+                                $studentId = $get('student_id');
+                                if (!$studentId)
+                                    return [];
+
+                                $activeYear = AcademicYear::where('is_active', true)->first();
+                                if (!$activeYear)
+                                    return [];
+
+                                return StudentClass::where('student_id', $studentId)
+                                    ->where('academic_year_id', $activeYear->id)
+                                    ->with('class')
+                                    ->get()
+                                    ->pluck('class.name', 'class.id');
+                            })
+                            ->reactive()
                             ->required(),
                         DatePicker::make('date')
                             ->label('Tanggal')

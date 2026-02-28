@@ -45,6 +45,25 @@ class Student extends Model
             ->withTimestamps();
     }
 
+    public function classActive()
+    {
+        $activeYear = AcademicYear::where('is_active', true)->first();
+
+        return $this->belongsToMany(
+            Classes::class,
+            'student_classes',
+            'student_id',
+            'class_id'
+        )
+            ->withPivot('academic_year_id')
+            ->wherePivot('academic_year_id', $activeYear->id); // hanya kelas tahun aktif
+    }
+
+    public function getActiveClassNameAttribute()
+    {
+        return $this->classActive->first()?->name ?? '-';
+    }
+
     public function studentClasses()
     {
         return $this->hasMany(StudentClass::class);

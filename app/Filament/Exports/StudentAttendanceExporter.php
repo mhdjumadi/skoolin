@@ -17,7 +17,8 @@ class StudentAttendanceExporter extends Exporter
         return [
             ExportColumn::make('id')
                 ->label('ID'),
-            ExportColumn::make('student_id'),
+            ExportColumn::make('student.name'),
+            ExportColumn::make('class.name'),
             ExportColumn::make('academicYear.name'),
             ExportColumn::make('date'),
             ExportColumn::make('check_in'),
