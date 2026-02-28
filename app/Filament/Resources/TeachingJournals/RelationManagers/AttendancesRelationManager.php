@@ -2,12 +2,7 @@
 
 namespace App\Filament\Resources\TeachingJournals\RelationManagers;
 
-use App\Models\Classes;
-use App\Models\JournalAttendance;
-use App\Models\StudentClass;
-use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DissociateAction;
@@ -27,6 +22,7 @@ use Filament\Tables\Table;
 class AttendancesRelationManager extends RelationManager
 {
     protected static string $relationship = 'attendances';
+    protected static ?string $title = 'Presensi Siswa';
 
     // --------------------------
     // Form

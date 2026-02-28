@@ -22,6 +22,8 @@ class TeacherClassAttendance extends TableWidget
     protected static ?int $sort = 4;
 
     protected static ?string $heading = 'Kehadiran Guru per Kelas Hari Ini';
+    protected int|string|array $columnSpan = 'full';
+
 
     public function table(Table $table): Table
     {

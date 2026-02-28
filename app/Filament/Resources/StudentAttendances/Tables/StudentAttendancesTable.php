@@ -28,7 +28,7 @@ class StudentAttendancesTable
                     ->searchable(),
                 TextColumn::make('date')
                     ->label('Tanggal')
-                    ->date()
+                    ->date('d-m-Y')
                     ->sortable(),
                 TextColumn::make('check_in')
                     ->label('Masuk')
@@ -57,7 +57,6 @@ class StudentAttendancesTable
                     ->label('Tahun Akademik')
                     ->relationship('academicYear', 'name'),
 
-
                 SelectFilter::make('student_id')
                     ->label('Siswa')
                     ->relationship('student', 'name'),
@@ -65,7 +64,6 @@ class StudentAttendancesTable
                 SelectFilter::make('class_id')
                     ->label('Kelas')
                     ->relationship('class', 'name'),
-
             ])
             ->recordActions([
                 ViewAction::make(),

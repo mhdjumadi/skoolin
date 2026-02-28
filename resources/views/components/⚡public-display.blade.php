@@ -27,7 +27,6 @@ new class extends Component {
     // Fungsi ini dipanggil oleh wire:poll setiap 5 detik
     public function loadData()
     {
-        // 1. Cari Tahun Ajaran Aktif
         $activeYear = AcademicYear::where('is_active', true)->first();
 
         if (!$activeYear) {
@@ -42,13 +41,11 @@ new class extends Component {
     {
         $todayDate = $this->now->toDateString();
         $todayNumber = $this->now->dayOfWeekIso;
-        // 2. Query Dasar (Base Query) untuk efisiensi
         $baseQuery = TeachingSchedule::query()
             ->where('academic_year_id', $activeYear->id)
             ->whereHas('day', fn($q) => $q->where('order', $todayNumber))
             ->with(['startPeriod', 'endPeriod', 'class', 'subject', 'teacher.user']);
 
-        // 4. AMBIL JADWAL YANG SEDANG BERLANGSUNG (Jadwal Sekarang)
         $currentLesson = (clone $baseQuery)
             ->whereHas('startPeriod', fn($q) => $q->whereTime('start_time', '<=', $this->now))
             ->whereHas('endPeriod', fn($q) => $q->whereTime('end_time', '>=', $this->now))
@@ -59,7 +56,6 @@ new class extends Component {
             $startTime = Carbon::parse($item->startPeriod?->start_time);
             $endTime = Carbon::parse($item->endPeriod?->end_time);
 
-            // Gunakan kolom 'date' sesuai fillable model Jurnal Anda
             $hasJournal = $item->journals()
                 ->where('date', $now->toDateString())
                 ->exists();
@@ -67,7 +63,6 @@ new class extends Component {
             $progres = 0;
             $isLate = false;
 
-            // Hitung total durasi & menit yang sudah berjalan
             $totalDuration = $startTime->diffInMinutes($endTime);
             $elapsed = $startTime->diffInMinutes($now, false);
 
@@ -90,27 +85,23 @@ new class extends Component {
 
         $this->jadwalHariIni = (clone $baseQuery)->get()->map(function ($item) {
             return [
-                'kelas' => $item->class?->name ?? '-', // Sesuaikan 'name' dengan kolom di tabel classes
-                'mapel' => $item->subject?->name ?? '-', // Sesuaikan 'name' dengan kolom di tabel subjects
-                'guru' => $item->teacher?->user?->name ?? '-', // Mengambil nama dari relasi user
+                'kelas' => $item->class?->name ?? '-',
+                'mapel' => $item->subject?->name ?? '-',
+                'guru' => $item->teacher?->user?->name ?? '-',
                 'jam' => ($item->startPeriod?->start_time ?? '') . ' - ' . ($item->endPeriod?->end_time ?? ''),
             ];
         })->toArray();
 
         $this->guruBelumMasuk = (clone $baseQuery)
-            // 1. Filter Jadwal yang sedang berlangsung (sama seperti jadwalSekarang)
             ->whereHas('startPeriod', fn($q) => $q->whereTime('start_time', '<=', $this->now))
             ->whereHas('endPeriod', fn($q) => $q->whereTime('end_time', '>=', $this->now))
 
-            // 2. Filter: Ambil yang TIDAK PUNYA jurnal untuk hari ini
             ->whereDoesntHave('journals', function ($query) use ($todayDate) {
                 $query->whereDate('date', $todayDate);
-                // pastikan nama kolom 'date' sesuai dengan di tabel teaching_journals Anda
             })
 
             ->with(['class', 'subject', 'teacher.user'])
             ->get()
-            // 3. Mapping agar formatnya rapi untuk dashboard
             ->map(function ($item) {
                 return [
                     'kelas' => $item->class->name ?? '-',
@@ -124,33 +115,30 @@ new class extends Component {
     public function attendanceData($activeYear)
     {
         $todayDate = $this->now->toDateString();
-        $todayNumber = $this->now->dayOfWeekIso;
         if ($activeYear) {
-            // 1. Ambil semua siswa yang terdaftar di tahun ajaran aktif
-            // Kita langsung hitung apakah mereka punya absensi hari ini menggunakan withCount
-            $students = Student::whereHas('studentClasses', function ($q) use ($activeYear) {
-                $q->where('academic_year_id', $activeYear->id);
-            })
-                ->with([
-                    'studentClasses' => fn($q) => $q->where('academic_year_id', $activeYear->id)->with('class'),
-                    'attendances' => fn($q) => $q->whereDate('date', $todayDate) // Ambil data absen hari ini jika ada
+            $students = Student::with([
+                'studentClasses' => fn($q) => $q
+                    ->where('academic_year_id', $activeYear->id)
+                    ->with('class'),
+                'attendances' => fn($q) => $q
+                    ->whereDate('date', $todayDate)
                 ])
+                ->where('is_active', true)
                 ->get();
 
-            // 2. Mapping Siswa Belum Presensi (Siswa yang tidak punya record attendance hari ini)
             $this->siswaBelumPresensi = $students->filter(fn($s) => $s->attendances->isEmpty())
                 ->map(fn($s) => [
                     'nama' => $s->name,
                     'kelas' => $s->studentClasses->first()?->class?->name ?? '-',
                 ])
+                ->take(20)
                 ->values()
                 ->toArray();
 
-            // 3. Hitung Statistik dari Collection (Tanpa Query Tambahan ke DB)
             $stats = $students->flatMap->attendances->groupBy('status')->map->count();
 
             $totalSiswa = $students->count();
-            $sudahAbsen = $stats->sum(); // Total yang hadir, izin, sakit, dll
+            $sudahAbsen = $stats->sum();
 
             $this->absensiHariIni = [
                 'total' => $totalSiswa,
@@ -347,7 +335,7 @@ new class extends Component {
               
                    {{-- Overlay Fade agar teks tidak terpotong tajam di bawah --}}
                    <div
-                       class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#0f172a] to-transparent pointer-events-none">
+                       class="absolute bottom-0 left-0 right-0 h-12 bg-linier-to-t from-[#0f172a] to-transparent pointer-events-none">
                    </div>
                </div>
            </div>
@@ -490,7 +478,7 @@ new class extends Component {
                                            {{-- Progress Bar Container --}}
                                            <div class="w-full h-2 bg-slate-900/50 rounded-full overflow-hidden p-[2px] border border-white/5">
                                                @if($jadwal['progres'])
-                                                   <div class="h-full bg-gradient-to-r from-green-600 via-green-400 to-emerald-400 rounded-full shadow-[0_0_10px_rgba(52,211,153,0.3)] transition-all duration-1000"
+                                                   <div class="h-full bg-linier-to-r from-green-600 via-green-400 to-emerald-400 rounded-full shadow-[0_0_10px_rgba(52,211,153,0.3)] transition-all duration-1000"
                                                        style="width: {{ $jadwal['progres'] }}%">
                                                    </div>
                                                @else
@@ -559,7 +547,7 @@ new class extends Component {
                    class="p-4 border-b border-white/5 flex justify-between items-center bg-slate-800/50 relative z-10 backdrop-blur-sm">
                    <h2 class="text-xs font-bold text-white uppercase tracking-widest flex items-center gap-2">
                        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.6)]"></span>
-                       Agenda Hari Ini
+                       Jadwal Hari Ini
                    </h2>
                    <span
                        class="text-[10px] px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 rounded text-blue-400 font-mono">
@@ -590,7 +578,7 @@ new class extends Component {
                                </div>
 
 
-                               <div class="h-px w-full bg-gradient-to-r from-white/10 to-transparent mb-3"></div>
+                               <div class="h-px w-full bg-linier-to-r from-white/10 to-transparent mb-3"></div>
 
 
                                <p
@@ -606,7 +594,7 @@ new class extends Component {
                        @empty
                            <div class="h-full flex flex-col items-center justify-center py-20 opacity-20">
                                <span class="text-4xl">🗓️</span>
-                               <p class="text-xs mt-2 uppercase font-bold tracking-widest">Belum Ada Agenda</p>
+                               <p class="text-xs mt-2 uppercase font-bold tracking-widest">Belum Ada Jadwal</p>
                            </div>
                        @endforelse
                    </div>
@@ -656,7 +644,7 @@ new class extends Component {
   
        {{-- ALPHA (Hasil pengurangan bersih) --}}
        <div class="bg-red-500/10 p-3 rounded-xl border border-red-500/20 flex flex-col items-center">
-           <span class="text-[10px] text-red-500 uppercase font-bold mb-1">Alpha</span>
+           <span class="text-[10px] text-red-500 uppercase font-bold mb-1">Tanpa Keterangan</span>
            <span class="text-xl font-mono font-bold text-red-400">{{ $absensiHariIni['alpha'] }}</span>
        </div>
   

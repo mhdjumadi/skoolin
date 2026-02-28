@@ -16,7 +16,7 @@ class CurrentLessonBanner extends Widget
 
     protected string $view = 'filament.widgets.current-lesson-banner';
 
-    protected int|string|array $columnSpan = 'full'; // full width
+    protected int|string|array $columnSpan = 'full';
 
     public $currentTime;
     public $currentLessonText;

@@ -7,10 +7,8 @@ use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\TableWidget;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\Student;
-use App\Models\StudentAttendance;
 
 class StudentsNotYetAttended extends TableWidget
 {
@@ -18,6 +16,8 @@ class StudentsNotYetAttended extends TableWidget
     protected static ?int $sort = 5;
 
     protected static ?string $heading = 'Siswa Belum Absen Hari Ini';
+    protected int|string|array $columnSpan = 'full';
+
 
     public function table(Table $table): Table
     {
@@ -42,6 +42,7 @@ class StudentsNotYetAttended extends TableWidget
                             ->from('student_attendances')
                             ->whereDate('date', $today);
                     })
+                    ->limit(20)
             )
             ->columns([
                 TextColumn::make('name')
@@ -54,6 +55,7 @@ class StudentsNotYetAttended extends TableWidget
                     ->label('Kelas')
                     ->sortable(),
             ])
+            ->paginated(false)
             ->filters([]);
     }
 }
