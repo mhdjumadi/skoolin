@@ -122,7 +122,7 @@ new class extends Component {
                     ->with('class'),
                 'attendances' => fn($q) => $q
                     ->whereDate('date', $todayDate)
-                ])
+            ])
                 ->where('is_active', true)
                 ->get();
 
@@ -204,7 +204,7 @@ new class extends Component {
                        Belum Presensi
                    </h2>
                    <span
-                       class="text-xs font-mono text-red-400/70 bg-red-500/5 px-2 py-0.5 rounded">{{ count($siswaBelumPresensi) }}</span>
+                       class="text-xs font-mono text-red-400/70 bg-red-500/5 px-2 py-0.5 rounded">{{ count($siswaBelumPresensi)}} dari {{ $absensiHariIni['alpha'] }}</span>
                </div>
       
                <div class="flex-1 relative overflow-hidden group" x-data="{
@@ -241,7 +241,7 @@ new class extends Component {
                        @empty
                            <div class="py-10 flex flex-col items-center justify-center opacity-30">
                                <span class="text-2xl">✓</span>
-                               <p class="text-[10px] mt-1">Nihil</p>
+                               <p class="text-[10px] mt-1">Semua siswa sudah hadir</p>
                            </div>
                        @endforelse
               
@@ -260,7 +260,7 @@ new class extends Component {
               
                    {{-- Fade Effect --}}
                    <div
-                       class="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-[#0f172a] to-transparent pointer-events-none">
+                       class="absolute bottom-0 left-0 right-0 h-10 bg-linier-to-t from-[#0f172a] to-transparent pointer-events-none">
                    </div>
                </div>
            </div>
@@ -310,7 +310,7 @@ new class extends Component {
                        @empty
                            <div class="py-10 flex flex-col items-center justify-center opacity-30">
                                <span class="text-2xl">👨‍🏫</span>
-                               <p class="text-[10px] mt-1 uppercase">Semua di kelas</p>
+                               <p class="text-[10px] mt-1 uppercase">Guru sedang mengajar</p>
                            </div>
                        @endforelse
               
