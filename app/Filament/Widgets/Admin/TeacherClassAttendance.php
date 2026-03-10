@@ -58,6 +58,10 @@ class TeacherClassAttendance extends TableWidget
                     ->label('Kelas')
                     ->sortable(),
 
+                TextColumn::make('subject.name')
+                    ->label('Mata Pelajaran')
+                    ->sortable(),
+
                 TextColumn::make('status')
                     ->label('Status Mengajar')
                     ->getStateUsing(function ($record) use ($journalsToday) {

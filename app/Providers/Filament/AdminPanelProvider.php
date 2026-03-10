@@ -32,24 +32,22 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             ->colors([
+                'primary'=>Color::Emerald,
                 'danger' => Color::Rose,
-                'gray' => Color::Gray,
-                'info' => Color::Blue,
-                'primary' => Color::Red,
+                'gray' => Color::Slate,
+                'info' => Color::Cyan,
                 'success' => Color::Emerald,
-                'warning' => Color::Orange,
+                'warning' => Color::Amber,
             ])
             ->font('IBM Plex Sans')
             ->profile()
             ->simpleProfilePage(false)
             ->brandName('SMK Harapan')
-            ->darkMode(false)
             ->databaseNotifications()
             ->databaseTransactions()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
-                // Dashboard::class,
                 AdminDashboard::class
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')

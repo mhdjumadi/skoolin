@@ -27,6 +27,7 @@ new class extends Component {
     // Fungsi ini dipanggil oleh wire:poll setiap 5 detik
     public function loadData()
     {
+        $this->now = now();
         $activeYear = AcademicYear::where('is_active', true)->first();
 
         if (!$activeYear) {
@@ -66,7 +67,8 @@ new class extends Component {
             $totalDuration = $startTime->diffInMinutes($endTime);
             $elapsed = $startTime->diffInMinutes($now, false);
 
-            $progres = min(100, round(($elapsed / max($totalDuration, 1)) * 100));
+            // $progres = min(100, round(($elapsed / max($totalDuration, 1)) * 100));
+            $progres = min(100, round(($elapsed / max($totalDuration, 1)) * 100, 2));
 
             if ($elapsed > 15) {
                 $isLate = true;
@@ -131,7 +133,7 @@ new class extends Component {
                     'nama' => $s->name,
                     'kelas' => $s->studentClasses->first()?->class?->name ?? '-',
                 ])
-                ->take(20)
+                ->take(10)
                 ->values()
                 ->toArray();
 
@@ -390,108 +392,113 @@ new class extends Component {
 
 
                                @foreach($chunk as $jadwal)
-                                   <div
-                                       class="relative overflow-hidden group bg-slate-800/40 rounded-2xl border border-white/10 shadow-xl flex flex-col p-5 transition-all duration-300 hover:border-green-500/50 hover:bg-slate-800/60">
+                                    <div
+                                        class="relative overflow-hidden group bg-slate-800/40 rounded-2xl border border-white/10 shadow-xl flex flex-col p-5 transition-all duration-300 hover:border-green-500/50 hover:bg-slate-800/60">
 
 
-                                       {{-- Decorative background accent --}}
-                                       <div
-                                           class="absolute -right-4 -top-4 w-20 h-20 bg-green-500/5 rounded-full blur-2xl group-hover:bg-green-500/10 transition-colors">
-                                       </div>
+                                        {{-- Decorative background accent --}}
+                                        <div
+                                            class="absolute -right-4 -top-4 w-20 h-20 bg-green-500/5 rounded-full blur-2xl group-hover:bg-green-500/10 transition-colors">
+                                        </div>
 
 
-                                       <div class="relative flex-1">
-                                           {{-- Top Header: Tag & Jam --}}
-                                           <div class="flex justify-between items-center mb-4">
-                                               <div class="flex items-center gap-2">
-                                                   <span class="relative flex h-2 w-2">
-                                                       <span
-                                                           class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                                       <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                                                   </span>
-                                                   {{-- <span class="text-[10px] font-bold text-green-400 uppercase tracking-[0.15em]">Sesi Aktif</span> --}}
-                                                   @if($jadwal['has_journal'])
-                                                           {{-- Status Jika Sudah Absen --}}
-                                                           {{-- <span class="relative flex h-1.5 w-1.5">
-                                                               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                                               <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
-                                                           </span> --}}
-                                                       <span class="text-[10px] font-bold text-green-400 uppercase tracking-[0.15em]">Proses Mengajar</span>
-                                                   @elseif($jadwal['is_late'])
-                                                       {{-- Status Jika Guru Telat Mengisi Jurnal --}}
-                                                       <span
-                                                           class="text-[9px] font-black text-red-500 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 animate-pulse">
-                                                           ⚠️ GURU BELUM MENGISI JURNAL
-                                                       </span>
-                                                   @else
-                                                       {{-- Status Menunggu (Baru mulai < 15 menit) --}} <span
-                                                           class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter italic">Menunggu Guru...</span>
-                                                   @endif
-                                               </div>
-                                               <div class="bg-slate-900/50 px-3 py-1 rounded-lg border border-white/5">
-                                                   <span class="text-sm font-mono font-bold text-yellow-400">{{ $jadwal['jam'] }}</span>
-                                               </div>
-                                           </div>
+                                        <div class="relative flex-1">
+                                            {{-- Top Header: Tag & Jam --}}
+                                            <div class="flex justify-between items-center mb-4">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="relative flex h-2 w-2">
+                                                        <span
+                                                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                                    </span>
+                                                    {{-- <span class="text-[10px] font-bold text-green-400 uppercase tracking-[0.15em]">Sesi Aktif</span> --}}
+                                                    @if($jadwal['has_journal'])
+                                                            {{-- Status Jika Sudah Absen --}}
+                                                            {{-- <span class="relative flex h-1.5 w-1.5">
+                                                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                                                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
+                                                            </span> --}}
+                                                        <span class="text-[10px] font-bold text-green-400 uppercase tracking-[0.15em]">Proses Mengajar</span>
+                                                    @elseif($jadwal['is_late'])
+                                                        {{-- Status Jika Guru Telat Mengisi Jurnal --}}
+                                                        <span
+                                                            class="text-[9px] font-black text-red-500 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 animate-pulse">
+                                                            ⚠️ GURU BELUM MENGISI JURNAL
+                                                        </span>
+                                                    @else
+                                                        {{-- Status Menunggu (Baru mulai < 15 menit) --}} <span
+                                                            class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter italic">Menunggu Guru...</span>
+                                                    @endif
+                                                </div>
+                                                <div class="bg-slate-900/50 px-3 py-1 rounded-lg border border-white/5">
+                                                    <span class="text-sm font-mono font-bold text-yellow-400">{{ $jadwal['jam'] }}</span>
+                                                </div>
+                                            </div>
 
 
-                                           {{-- Main Content: Mata Pelajaran --}}
-                                           <h3
-                                               class="text-xl font-black text-white leading-tight uppercase tracking-tight mb-4 group-hover:text-green-400 transition-colors line-clamp-2">
-                                               {{ $jadwal['mapel'] }}
-                                           </h3>
+                                            {{-- Main Content: Mata Pelajaran --}}
+                                            <h3
+                                                class="text-xl font-black text-white leading-tight uppercase tracking-tight mb-4 group-hover:text-green-400 transition-colors line-clamp-2">
+                                                {{ $jadwal['mapel'] }}
+                                            </h3>
 
 
-                                           {{-- Info Row: Kelas & Guru --}}
-                                           <div class="grid grid-cols-2 gap-3 mt-auto">
-                                               <div class="flex flex-col p-2 bg-white/5 rounded-xl border border-white/5">
-                                                   <span class="text-[9px] text-slate-500 uppercase font-bold tracking-wider mb-1">Ruang /
-                                                       Kelas</span>
-                                                   <span class="text-sm font-bold text-slate-200 truncate">{{ $jadwal['kelas'] }}</span>
-                                               </div>
-                                               <div class="flex flex-col p-2 bg-white/5 rounded-xl border border-white/5">
-                                                   <span class="text-[9px] text-slate-500 uppercase font-bold tracking-wider mb-1">Tenaga
-                                                       Pengajar</span>
-                                                   <span class="text-sm font-semibold text-slate-400 truncate">{{ $jadwal['guru'] }}</span>
-                                               </div>
-                                           </div>
-                                       </div>
+                                            {{-- Info Row: Kelas & Guru --}}
+                                            <div class="grid grid-cols-2 gap-3 mt-auto">
+                                                <div class="flex flex-col p-2 bg-white/5 rounded-xl border border-white/5">
+                                                    <span class="text-[9px] text-slate-500 uppercase font-bold tracking-wider mb-1">Ruang /
+                                                        Kelas</span>
+                                                    <span class="text-sm font-bold text-slate-200 truncate">{{ $jadwal['kelas'] }}</span>
+                                                </div>
+                                                <div class="flex flex-col p-2 bg-white/5 rounded-xl border border-white/5">
+                                                    <span class="text-[9px] text-slate-500 uppercase font-bold tracking-wider mb-1">Tenaga
+                                                        Pengajar</span>
+                                                    <span class="text-sm font-semibold text-slate-400 truncate">{{ $jadwal['guru'] }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
 
 
-                                       {{-- Footer: Progress Bar --}}
-                                       <div class="mt-5">
-                                           <div class="flex justify-between items-center mb-1.5">
-                                               <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Waktu Berjalan</span>
+                                        {{-- Footer: Progress Bar --}}
+                                        <div class="mt-5">
+                                            <div class="flex justify-between items-center mb-1.5">
+                                                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Waktu Berjalan</span>
 
 
-                                               <div class="flex items-center gap-1.5">
-                                                   <span class="relative flex h-1.5 w-1.5">
-                                                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                                       <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
-                                                   </span>
-                                                   <span class="text-[9px] font-black text-green-500 italic uppercase">On Progress
-                                                       ({{ $jadwal['progres'] }}%)</span>
-                                                   {{--  --}}
-                                               </div>
-                                           </div>
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="relative flex h-1.5 w-1.5">
+                                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
+                                                    </span>
+                                                    <span class="text-[9px] font-black text-green-500 italic uppercase">On Progress
+                                                        ({{ $jadwal['progres'] }}%)</span>
+                                                    {{--  --}}
+                                                </div>
+                                            </div>
 
 
-                                           {{-- Progress Bar Container --}}
-                                           <div class="w-full h-2 bg-slate-900/50 rounded-full overflow-hidden p-[2px] border border-white/5">
-                                               @if($jadwal['progres'])
-                                                   <div class="h-full bg-linier-to-r from-green-600 via-green-400 to-emerald-400 rounded-full shadow-[0_0_10px_rgba(52,211,153,0.3)] transition-all duration-1000"
-                                                       style="width: {{ $jadwal['progres'] }}%">
-                                                   </div>
-                                               @else
-                                                   {{-- Progress bar statis/bergaris jika belum ada jurnal --}}
-                                                   <div class="h-full w-full bg-slate-800 flex items-center justify-center">
-                                                       <div class="w-full h-full opacity-20"
-                                                           style="background-image: linear-gradient(45deg, #475569 25%, transparent 25%, transparent 50%, #475569 50%, #475569 75%, transparent 75%, transparent); background-size: 10px 10px;">
-                                                       </div>
-                                                   </div>
-                                               @endif
-                                           </div>
-                                       </div>
-                                   </div>
+                                            {{-- Progress Bar Container --}}
+                                            <div class="relative w-full"> {{-- Sesuaikan max-width jika perlu --}}
+                                                <div
+                                                    class="w-full h-[6px] bg-slate-200 dark:bg-slate-900/60 rounded-full overflow-hidden border border-black/5 dark:border-white/5 shadow-inner">
+
+                                                    @php
+                                                        $percent = floatval($jadwal['progres'] ?? 0);
+                                                    @endphp
+
+                                                    @if($percent > 0)
+                                                        <div class="h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(16,185,129,0.5)]"
+                                                            style="width: {{ $percent }}%; 
+                                                                        background: linear-gradient(90deg, #059669 0%, #10b981 100%); 
+                                                                        display: block !important;">
+                                                        </div>
+                                                    @else
+                                                        <div class="h-full w-full bg-slate-300 dark:bg-slate-800 opacity-20"></div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                @endforeach
                            </div>
                        @endforeach

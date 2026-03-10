@@ -34,7 +34,7 @@ class RfidMastersTable
                         $record->student?->name ?? 'Belum dipasangkan'
                     )
                     ->color(fn ($record) => 
-                        $record->student_id ? 'success' : 'warning'
+                        $record->student_id ? 'primary' : 'warning'
                     )
                     ->url(fn ($record) =>
                         $record->student_id

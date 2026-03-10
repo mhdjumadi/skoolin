@@ -42,7 +42,7 @@ class StudentsNotYetAttended extends TableWidget
                             ->from('student_attendances')
                             ->whereDate('date', $today);
                     })
-                    ->limit(20)
+                    ->limit(10)
             )
             ->columns([
                 TextColumn::make('name')

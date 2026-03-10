@@ -5,7 +5,7 @@
 
 
 @theme {
-    --color-main-primary: #1E3A8A; /* #F0F0F0 */
+    --color-main-primary: #1E3A8A; /* #1E40AF */
     --color-main-secondary: #F0F0F0; /* #134686 */
     --color-main-white: #FFFFFF;
     --color-brand-primary: #10B981;
@@ -15,36 +15,44 @@
 }
 
 
-.fi-body {
+/* .fi-body {
     @apply bg-main-secondary text-main-black;
-}
+} */
 
-.fi-topbar {
+/* .fi-topbar {
     @apply bg-main-primary shadow-none ring-0 text-main-white;
-}
+} */
 
-.fi-icon-btn {
+/* .fi-icon-btn {
     @apply text-main-secondary
-}
+} */
 
-.fi-icon-btn {
+/* .fi-icon-btn {
     &.fi-size-sm {
         &:has(.fi-icon.fi-size-md) {
             @apply text-main-primary
         }
     }
-}
+} */
 
-.fi-logo {
+/* .fi-logo {
     @apply text-main-white
-}
+}*/
 
-.fi-sidebar-header .fi-logo {
-    @apply text-main-primary
-}
+/* .fi-sidebar-header .fi-logo {
+    @apply text-main-primary;
+}  */
+
 
 .fi-sidebar {
-    @apply bg-main-white shadow-lg rounded-2xl ml-2 mt-2;
+    /* Gunakan margin & rounded untuk efek floating yang elegan */
+    @apply ml-3 mt-2 rounded-2xl border-none shadow-2xl;
+
+    /* Mode Terang (Light Mode) */
+    @apply bg-white/80 backdrop-blur-md border border-gray-200;
+
+    /* Mode Gelap (Dark Mode) */
+    @apply dark:bg-gray-900/90 dark:border-white/10 dark:shadow-none;
 }
 
 .fi-body-has-topbar .fi-sidebar {
@@ -59,7 +67,7 @@
     @apply rounded-2xl;
 }
 
-.fi-sidebar-item.fi-active>.fi-sidebar-item-btn>.fi-sidebar-item-label{
+/* .fi-sidebar-item.fi-active>.fi-sidebar-item-btn>.fi-sidebar-item-label{
     @apply text-main-primary;
 }
 
@@ -69,38 +77,4 @@
 
 .fi-sidebar-item.fi-active>.fi-sidebar-item-btn>.fi-sidebar-item-grouped-border>.fi-sidebar-item-grouped-border-part{
     @apply bg-main-primary;
-}
-
-.fi-ta-ctn{
-    @apply bg-main-white p-4;
-}
-
-.fi-ta-ctn {
-    & .fi-ta-header-ctn{
-        @apply rounded-2xl bg-brand-primary;
-    }
-}
-
-.fi-ta-ctn {
-    & .fi-ta-header-toolbar {
-        @apply border-b-0;
-    }
-}
-
-/* .fi-ta-ctn {
-    & .fi-ta-header {
-        @apply border-b-0;
-    }
 } */
-
-.fi-ta-table{
-    &>thead {
-        &>tr {
-            @apply text-main-black bg-main-white;
-        }
-    }
-}
-
-.fi-ta-header-heading{
-    @apply text-main-white;
-}

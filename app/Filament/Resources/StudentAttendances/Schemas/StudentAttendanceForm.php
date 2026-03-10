@@ -33,27 +33,31 @@ class StudentAttendanceForm
                         //     ->label('Kelas')
                         //     ->options(Classes::all()->pluck('name', 'id')->toArray())
                         //     ->required(),
-                        Select::make('student_id')
-                            ->label('Siswa')
-                            ->options(Student::pluck('name', 'id'))
-                            ->reactive()
-                            ->required(),
                         Select::make('class_id')
                             ->label('Kelas')
+                            ->options(Classes::pluck('name', 'id'))
+                            ->reactive()
+                            ->required(),
+
+                        Select::make('student_id')
+                            ->label('Siswa')
                             ->options(function (callable $get) {
-                                $studentId = $get('student_id');
-                                if (!$studentId)
+                                $classId = $get('class_id');
+
+                                if (!$classId) {
                                     return [];
+                                }
 
                                 $activeYear = AcademicYear::where('is_active', true)->first();
-                                if (!$activeYear)
+                                if (!$activeYear) {
                                     return [];
+                                }
 
-                                return StudentClass::where('student_id', $studentId)
+                                return StudentClass::where('class_id', $classId)
                                     // ->where('academic_year_id', $activeYear->id)
-                                    ->with('class')
+                                    ->with('student')
                                     ->get()
-                                    ->pluck('class.name', 'class.id');
+                                    ->pluck('student.name', 'student.id');
                             })
                             ->reactive()
                             ->required(),

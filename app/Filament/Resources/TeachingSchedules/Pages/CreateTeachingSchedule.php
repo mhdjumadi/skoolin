@@ -14,25 +14,21 @@ class CreateTeachingSchedule extends CreateRecord
 
     protected function beforeCreate(): void
     {
-        // dd($this->data);
         try {
-            $this->validateSchedule(); // manual composite unique check
+            $this->validateSchedule();
         } catch (ValidationException $e) {
-            // tampilkan notif tambahan ke UI
             Notification::make()
                 ->title('Jadwal Sudah Ada!')
                 ->body($e->errors())
                 ->danger()
                 ->send();
-
-            // throw exception supaya form tidak submit
             throw $e;
         }
     }
 
     protected function validateSchedule(): void
     {
-        $data = $this->data; // ambil semua field form
+        $data = $this->data;
 
         // 1️⃣ Cek duplicate untuk kelas (class schedule)
         $classConflict = TeachingSchedule::where([
